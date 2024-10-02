@@ -10,6 +10,10 @@ const nextConfig = {
     };
     return config;
   },
+  // 添加这个配置
+  experimental: {
+    appDir: true,
+  },
 };
 
 module.exports = nextConfig;

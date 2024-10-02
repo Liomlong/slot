@@ -22,7 +22,9 @@ const SlotMachine: React.FC = () => {
 
   const totalIcons = exchangeIcons.length;
 
-  const [audio] = useState(new Audio('/sounds/spin.mp3')); // 请确保你有这个音频文件
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const bigWinAudioRef = useRef<HTMLAudioElement | null>(null);
+  const smallWinAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const [autoSpinCount, setAutoSpinCount] = useState(0);
 
@@ -36,12 +38,18 @@ const SlotMachine: React.FC = () => {
 
   const [lastSpinTime, setLastSpinTime] = useState<number | null>(null);
 
-  const bigWinAudio = useRef(new Audio('/sounds/big-win.mp3'));
-  const smallWinAudio = useRef(new Audio('/sounds/small-win.mp3'));
+  useEffect(() => {
+    // 在客户端初始化音频
+    setAudio(new Audio('/sounds/spin.mp3'));
+    bigWinAudioRef.current = new Audio('/sounds/big-win.mp3');
+    smallWinAudioRef.current = new Audio('/sounds/small-win.mp3');
+  }, []);
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
-    audio.muted = !isMuted;
+    if (audio) {
+      audio.muted = !isMuted;
+    }
   };
 
   useEffect(() => {
@@ -114,8 +122,12 @@ const SlotMachine: React.FC = () => {
   };
 
   const playWinSound = (winType: 'big' | 'small' | 'none') => {
-    // 暂时不播放声音
-    console.log(`Would play ${winType} win sound`);
+    if (isMuted) return;
+    if (winType === 'big' && bigWinAudioRef.current) {
+      bigWinAudioRef.current.play();
+    } else if (winType === 'small' && smallWinAudioRef.current) {
+      smallWinAudioRef.current.play();
+    }
   };
 
   const handleWinning = async (winType: 'big' | 'small' | 'none') => {
@@ -164,7 +176,7 @@ const SlotMachine: React.FC = () => {
         setSpinsLeft(data.spinsLeft);
         setLastSpinTime(data.lastSpinTime);
 
-        if (!isMuted) {
+        if (!isMuted && audio) {
           audio.play();
         }
 
