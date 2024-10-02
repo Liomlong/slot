@@ -1,7 +1,7 @@
 // app/components/SlotMachine.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const SlotMachine: React.FC = () => {
   const [username, setUsername] = useState('@username');
@@ -35,6 +35,9 @@ const SlotMachine: React.FC = () => {
   const [winAnimation, setWinAnimation] = useState<'big' | 'small' | null>(null);
 
   const [lastSpinTime, setLastSpinTime] = useState<number | null>(null);
+
+  const bigWinAudio = useRef(new Audio('/sounds/big-win.mp3'));
+  const smallWinAudio = useRef(new Audio('/sounds/small-win.mp3'));
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
@@ -108,6 +111,11 @@ const SlotMachine: React.FC = () => {
       return 'small';
     }
     return 'none';
+  };
+
+  const playWinSound = (winType: 'big' | 'small' | 'none') => {
+    // 暂时不播放声音
+    console.log(`Would play ${winType} win sound`);
   };
 
   const handleWinning = async (winType: 'big' | 'small' | 'none') => {
