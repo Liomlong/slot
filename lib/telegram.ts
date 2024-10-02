@@ -1,1 +1,1 @@
-export const TELEGRAM_BOT_TOKEN = '7564002140:AAFj4yZdk08M6VY1kceFnvX8XrAslIKue4U';
+export const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
