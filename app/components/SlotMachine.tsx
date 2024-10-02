@@ -93,17 +93,17 @@ const SlotMachine: React.FC = () => {
     return hoursSinceLastSpin >= 24;
   };
 
-  const checkWinning = (finalSlots: number[]) => {
+  const checkWinning = (finalSlots: number[]): 'big' | 'small' | null => {
     const [slot1, slot2, slot3] = finalSlots;
     if (slot1 === slot2 && slot2 === slot3) {
       return 'big';
     } else if (slot1 === slot2 || slot2 === slot3 || slot1 === slot3) {
       return 'small';
     }
-    return 'none';
+    return null;
   };
 
-  const playWinSound = (winType: 'big' | 'small' | 'none') => {
+  const playWinSound = (winType: 'big' | 'small' | null) => {
     if (isMuted) return;
     if (winType === 'big' && bigWinAudioRef.current) {
       bigWinAudioRef.current.play();
@@ -112,7 +112,7 @@ const SlotMachine: React.FC = () => {
     }
   };
 
-  const handleWinning = async (winType: 'big' | 'small' | 'none') => {
+  const handleWinning = async (winType: 'big' | 'small' | null) => {
     let winAmount = 0;
     if (winType === 'big') {
       winAmount = 100;
@@ -129,6 +129,7 @@ const SlotMachine: React.FC = () => {
       const data = await response.json();
       setPoints(data.newPoints);
       
+      // 修改这里
       setWinAnimation(winType);
       setWinAmount(winAmount);
       
@@ -189,7 +190,13 @@ const SlotMachine: React.FC = () => {
             setSlots(finalSlots);
             
             const winType = checkWinning(finalSlots);
-            handleWinning(winType);
+            if (winType) {
+              handleWinning(winType);
+            } else {
+              // 处理没有中奖的情况
+              setWinAnimation(null);
+              setWinAmount(null);
+            }
             
             if (auto && autoSpinCount > 1) {
               setAutoSpinCount(autoSpinCount - 1);
