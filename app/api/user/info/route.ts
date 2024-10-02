@@ -10,12 +10,17 @@ export async function GET(request: Request) {
   }
 
   try {
-    const res = await pool.query('SELECT points, usdt_balance, spins_left, last_spin_time FROM users WHERE tg_id = $1', [tgId]);
+    const res = await pool.query('SELECT points, usdt_balance, spins_left, last_spin_time, username FROM users WHERE tg_id = $1', [tgId]);
     if (res.rows.length === 0) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      // 如果用户不存在，创建新用户
+      const newUser = await pool.query(
+        'INSERT INTO users (tg_id, points, usdt_balance, spins_left) VALUES ($1, 0, 0, 3) RETURNING points, usdt_balance, spins_left, last_spin_time, username',
+        [tgId]
+      );
+      return NextResponse.json(newUser.rows[0]);
     }
-    const { points, usdt_balance, spins_left, last_spin_time } = res.rows[0];
-    return NextResponse.json({ points, usdtBalance: usdt_balance, spinsLeft: spins_left, lastSpinTime: last_spin_time });
+    const { points, usdt_balance, spins_left, last_spin_time, username } = res.rows[0];
+    return NextResponse.json({ points, usdtBalance: usdt_balance, spinsLeft: spins_left, lastSpinTime: last_spin_time, username });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: 'Database error' }, { status: 500 });

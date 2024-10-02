@@ -4,9 +4,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 const SlotMachine: React.FC = () => {
-  const [username, setUsername] = useState('@username');
+  const [username, setUsername] = useState<string | null>(null);
   const [points, setPoints] = useState(100);
-  const [usdtBalance, setUsdtBalance] = useState(50);
   const [spinsLeft, setSpinsLeft] = useState(3);
 
   // 模拟交易所图标（请替换为实际图标路径）
@@ -35,6 +34,7 @@ const SlotMachine: React.FC = () => {
   const [autoSpinProgress, setAutoSpinProgress] = useState(0);
 
   const [winAnimation, setWinAnimation] = useState<'big' | 'small' | null>(null);
+  const [winAmount, setWinAmount] = useState<number | null>(null);
 
   const [lastSpinTime, setLastSpinTime] = useState<number | null>(null);
 
@@ -71,38 +71,20 @@ const SlotMachine: React.FC = () => {
     const tg = (window as any).Telegram?.WebApp;
     if (tg) {
       const user = tg.initDataUnsafe.user;
-      const userData = {
-        tgId: user.id,
-        username: user.username,
-        fullName: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
-      };
-      // 将用户信息发送到后端
-      fetch('/api/user', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
-      // 更新前端状态
       setTgId(user.id);
-      setUsername(`@${user.username || 'unknown'}`);
-    }
-  }, []);
+      setUsername(user.username || `${user.first_name} ${user.last_name}`.trim());
 
-  useEffect(() => {
-    if (tgId) {
-      // 获取用户的最新信息,包括上次旋转时间
-      fetch(`/api/user/info?tgId=${tgId}`)
+      // 获取用户信息
+      fetch(`/api/user/info?tgId=${user.id}`)
         .then(res => res.json())
         .then(data => {
           setPoints(data.points);
-          setUsdtBalance(data.usdtBalance);
           setSpinsLeft(data.spinsLeft);
           setLastSpinTime(data.lastSpinTime);
-        });
+        })
+        .catch(error => console.error('Error fetching user info:', error));
     }
-  }, [tgId]);
+  }, []);
 
   const isFreeSpinAvailable = () => {
     if (!lastSpinTime) return true;
@@ -134,10 +116,8 @@ const SlotMachine: React.FC = () => {
     let winAmount = 0;
     if (winType === 'big') {
       winAmount = 100;
-      setWinAnimation('big');
     } else if (winType === 'small') {
       winAmount = 50;
-      setWinAnimation('small');
     }
 
     if (winAmount > 0) {
@@ -149,11 +129,17 @@ const SlotMachine: React.FC = () => {
       const data = await response.json();
       setPoints(data.newPoints);
       
+      setWinAnimation(winType);
+      setWinAmount(winAmount);
+      
       // 播放中奖音效
       playWinSound(winType);
 
       // 3秒后清除动画状态
-      setTimeout(() => setWinAnimation(null), 3000);
+      setTimeout(() => {
+        setWinAnimation(null);
+        setWinAmount(null);
+      }, 3000);
     }
   };
 
@@ -238,31 +224,18 @@ const SlotMachine: React.FC = () => {
     }
   };
 
-  const handleExchange = () => {
-    if (points >= 100) {
-      setPoints(points - 100);
-      setUsdtBalance(usdtBalance + 1);
-      alert('兑换成功！100积分已兑换为1 USDT');
-    } else {
-      alert('积分不足，无法兑换');
-    }
-  };
-
   return (
     <div className="flex flex-col items-center p-4 bg-gradient-to-b from-indigo-900 to-purple-900 min-h-screen">
       {/* 用户信息 */}
       <div className="flex items-center space-x-4 mb-4 bg-white bg-opacity-20 p-3 rounded-lg shadow-lg w-full max-w-sm">
-        <div className="flex items-center flex-1">
-          <span className="mr-1 text-xl">👤</span>
-          <span className="text-sm font-semibold text-white">{username}</span>
+        <div className="flex-shrink-0">
+          <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-xl font-bold">
+            {username ? username[0].toUpperCase() : '?'}
+          </div>
         </div>
-        <div className="flex items-center flex-1">
-          <span className="mr-1 text-xl">💎</span>
-          <span className="text-sm font-semibold text-white">{points}</span>
-        </div>
-        <div className="flex items-center flex-1">
-          <span className="mr-1 text-xl">💰</span>
-          <span className="text-sm font-semibold text-white">{usdtBalance}</span>
+        <div className="flex-grow">
+          <p className="text-white font-semibold">{username || 'Loading...'}</p>
+          <p className="text-sm text-gray-300">Points: {points}</p>
         </div>
       </div>
 
@@ -303,13 +276,6 @@ const SlotMachine: React.FC = () => {
               />
             </div>
           ))}
-          {winAnimation && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className={`text-4xl ${winAnimation === 'big' ? 'text-yellow-400' : 'text-green-400'} animate-bounce`}>
-                {winAnimation === 'big' ? '大奖!' : '小奖!'}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* 静音按钮 */}
@@ -341,12 +307,6 @@ const SlotMachine: React.FC = () => {
             邀请好友
           </button>
           <button
-            onClick={handleExchange}
-            className="mt-2 px-4 py-2 text-sm bg-yellow-600 text-white rounded-full shadow hover:bg-yellow-700"
-          >
-            兑换USDT
-          </button>
-          <button
             onClick={() => {
               setAutoSpinCount(5);
               handleSpin(true);
@@ -369,6 +329,27 @@ const SlotMachine: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* 中奖弹窗 */}
+      {winAnimation && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl text-center">
+            <h2 className={`text-4xl font-bold mb-4 ${winAnimation === 'big' ? 'text-yellow-500' : 'text-green-500'}`}>
+              {winAnimation === 'big' ? '大奖!' : '小奖!'}
+            </h2>
+            <p className="text-2xl mb-4">恭喜您赢得 {winAmount} 积分!</p>
+            <button
+              onClick={() => {
+                setWinAnimation(null);
+                setWinAmount(null);
+              }}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            >
+              继续游戏
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 添加调试信息 */}
       <div className="mt-4 text-white text-xs">
