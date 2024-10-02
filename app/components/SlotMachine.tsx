@@ -72,17 +72,27 @@ const SlotMachine: React.FC = () => {
     if (tg) {
       const user = tg.initDataUnsafe.user;
       setTgId(user.id);
+      // 直接从 Telegram WebApp 设置用户名
       setUsername(user.username || `${user.first_name} ${user.last_name}`.trim());
+
+      console.log("Telegram user info:", user); // 添加这行来调试
 
       // 获取用户信息
       fetch(`/api/user/info?tgId=${user.id}`)
         .then(res => res.json())
         .then(data => {
+          console.log("User info from API:", data); // 添加这行来调试
           setPoints(data.points);
           setSpinsLeft(data.spinsLeft);
           setLastSpinTime(data.lastSpinTime);
+          // 如果后端返回了用户名，使用后端的用户名
+          if (data.username) {
+            setUsername(data.username);
+          }
         })
         .catch(error => console.error('Error fetching user info:', error));
+    } else {
+      console.log("Telegram WebApp not available"); // 添加这行来调试
     }
   }, []);
 
