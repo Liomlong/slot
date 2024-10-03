@@ -1,7 +1,7 @@
 {
   "slotMachine": {
-    "title": "Slot Machine",
-    "points": "Points",
+    "title": "Machine à sous",
+    "pointsAndUsdt": "🎟️ Points: {points} | 💰 USDT: {usdt}",
     "spin": "Tourner",
     "autoSpin": "Tour automatique 5 fois",
     "invite": "Inviter des amis",
@@ -9,7 +9,7 @@
     "spinsLeft": "Tours restants",
     "bigWin": "Grande victoire !",
     "smallWin": "Petite victoire !",
-    "congratulations": "Félicitations ! Vous avez gagné {amount} points !",
+    "congratulations": "Félicitations ! Vous avez gagné {amount} !",
     "continueGame": "Continuer le jeu"
   },
   "navbar": {
@@ -24,9 +24,14 @@
   "welcomeModal": {
     "title": "Bienvenue nouvel utilisateur !",
     "subtitle": "Félicitations ! Vous avez reçu les récompenses suivantes :",
-    "reward1": "1000 Points",
+    "reward1": "🎟️ 1000 Points",
     "reward2": "5 Tours gratuits",
     "enjoy": "Profitez bien de votre jeu !",
     "startGame": "Commencer le jeu"
+  },
+  "invite": {
+    "title": "Inviter des amis",
+    "description": "Invitez des amis et obtenez des récompenses :",
+    "reward": "Pour chaque ami invité, vous recevrez 🎟️ 100 Points et 💰 1 USDT"
   }
 }
