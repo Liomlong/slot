@@ -68,31 +68,37 @@ const SlotMachine: React.FC = () => {
   }, [tgId]);
 
   useEffect(() => {
+    console.log("Initializing Telegram WebApp");
     const tg = (window as any).Telegram?.WebApp;
+    console.log("Telegram object:", tg);
     if (tg) {
-      const user = tg.initDataUnsafe.user;
-      setTgId(user.id);
-      // 直接从 Telegram WebApp 设置用户名
-      setUsername(user.username || `${user.first_name} ${user.last_name}`.trim());
+      console.log("Telegram WebApp found:", tg);
+      console.log("InitData:", tg.initData);
+      console.log("InitDataUnsafe:", tg.initDataUnsafe);
+      const user = tg.initDataUnsafe?.user;
+      console.log("Telegram user:", user);
+      if (user) {
+        setTgId(user.id);
+        setUsername(user.username || `${user.first_name} ${user.last_name}`.trim());
 
-      console.log("Telegram user info:", user); // 添加这行来调试
-
-      // 获取用户信息
-      fetch(`/api/user/info?tgId=${user.id}`)
-        .then(res => res.json())
-        .then(data => {
-          console.log("User info from API:", data); // 添加这行来调试
-          setPoints(data.points);
-          setSpinsLeft(data.spinsLeft);
-          setLastSpinTime(data.lastSpinTime);
-          // 如果后端返回了用户名，使用后端的用户名
-          if (data.username) {
-            setUsername(data.username);
-          }
-        })
-        .catch(error => console.error('Error fetching user info:', error));
+        // 获取用户信息
+        fetch(`/api/user/info?tgId=${user.id}`)
+          .then(res => res.json())
+          .then(data => {
+            console.log("User info from API:", data);
+            setPoints(data.points);
+            setSpinsLeft(data.spinsLeft);
+            setLastSpinTime(data.lastSpinTime);
+            if (data.username) {
+              setUsername(data.username);
+            }
+          })
+          .catch(error => console.error('Error fetching user info:', error));
+      } else {
+        console.log("No user found in Telegram WebApp");
+      }
     } else {
-      console.log("Telegram WebApp not available"); // 添加这行来调试
+      console.log("Telegram WebApp not available");
     }
   }, []);
 
@@ -155,7 +161,7 @@ const SlotMachine: React.FC = () => {
   };
 
   const handleSpin = async (auto = false) => {
-    console.log("handleSpin called", { spinsLeft, isSpinning, tgId });
+    console.log("Spin attempt:", { tgId, spinsLeft, isSpinning, isFreeSpinAvailable: isFreeSpinAvailable() });
     if ((spinsLeft > 0 || isFreeSpinAvailable()) && !isSpinning && tgId) {
       setIsSpinning(true);
       try {
@@ -222,11 +228,12 @@ const SlotMachine: React.FC = () => {
         alert("旋转失败，请稍后再试");
       }
     } else {
-      console.log("Spin conditions not met", { spinsLeft, isSpinning, tgId });
+      console.log("Spin conditions not met", { spinsLeft, isSpinning, tgId, isFreeSpinAvailable: isFreeSpinAvailable() });
       if (spinsLeft <= 0 && !isFreeSpinAvailable()) {
-        alert("您的旋转次数已用完,请等待24小时后的免费旋转");
+        alert("您的旋转次数已用完，请等待24小时后的免费旋转");
       } else if (!tgId) {
         alert("请先登录");
+        console.error("tgId is null, user not logged in");
       }
     }
   };
