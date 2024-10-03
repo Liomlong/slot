@@ -22,6 +22,15 @@
     "friend": "好友",
     "wallet": "钱包"
   },
+  "rank": {
+    "title": "排行榜"
+  },
+  "wallet": {
+    "title": "我的钱包"
+  },
+  "friend": {
+    "title": "好友"
+  },
   "welcomeModal": {
     "title": "欢迎新用户!",
     "subtitle": "恭喜您获得以下奖励:",

@@ -74,5 +74,5 @@ export const useTranslation = () => {
     return value as string;
   };
 
-  return { t, language };
+  return { t };
 };

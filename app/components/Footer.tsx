@@ -2,35 +2,39 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useTranslation } from '../hooks/useTranslation';
+import { usePathname } from 'next/navigation';
+import { FaHome, FaChartBar, FaUserFriends, FaWallet } from 'react-icons/fa';
 
 const Footer: React.FC = () => {
-  const router = useRouter();
   const { t } = useTranslation();
+  const pathname = usePathname();
 
   const navItems = [
-    { name: 'footer.slot', icon: '🎰', path: '/' },
-    { name: 'footer.rank', icon: '🏆', path: '/rank' },
-    { name: 'footer.friend', icon: '👥', path: '/friend' },
-    { name: 'footer.wallet', icon: '💰', path: '/wallet' },
+    { name: t('footer.slot'), path: '/', icon: FaHome },
+    { name: t('footer.rank'), path: '/rank', icon: FaChartBar },
+    { name: t('footer.friend'), path: '/friend', icon: FaUserFriends },
+    { name: t('footer.wallet'), path: '/wallet', icon: FaWallet },
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white shadow-inner">
-      <div className="flex justify-around py-2">
-        {navItems.map((item) => (
-          <button
-            key={item.name}
-            onClick={() => router.push(item.path)}
-            className="flex flex-col items-center"
-          >
-            <span className="text-2xl">{item.icon}</span>
-            <span className="text-sm text-gray-700">{t(item.name)}</span>
-          </button>
-        ))}
-      </div>
-    </div>
+    <footer className="bg-gray-800 text-white py-2 fixed bottom-0 left-0 right-0">
+      <nav className="container mx-auto">
+        <ul className="flex justify-around items-center">
+          {navItems.map((item) => (
+            <li key={item.path} className="flex-1">
+              <Link href={item.path}>
+                <div className={`flex flex-col items-center py-2 ${pathname === item.path ? 'text-yellow-400' : 'text-white hover:text-yellow-200'}`}>
+                  {React.createElement(item.icon, { className: "text-2xl mb-1" })}
+                  <span className="text-xs">{item.name}</span>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </footer>
   );
 };
 
