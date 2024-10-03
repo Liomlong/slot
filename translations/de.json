@@ -1,7 +1,7 @@
 {
   "slotMachine": {
-    "title": "Slot Machine",
-    "points": "Punkte",
+    "title": "Spielautomat",
+    "pointsAndUsdt": "🎟️ Punkte: {points} | 💰 USDT: {usdt}",
     "spin": "Drehen",
     "autoSpin": "5 Mal automatisch drehen",
     "invite": "Freunde einladen",
@@ -9,7 +9,7 @@
     "spinsLeft": "Verbleibende Drehungen",
     "bigWin": "Großer Gewinn!",
     "smallWin": "Kleiner Gewinn!",
-    "congratulations": "Glückwunsch! Sie haben {amount} Punkte gewonnen!",
+    "congratulations": "Glückwunsch! Sie haben {amount} gewonnen!",
     "continueGame": "Spiel fortsetzen"
   },
   "navbar": {
@@ -24,9 +24,14 @@
   "welcomeModal": {
     "title": "Willkommen neuer Benutzer!",
     "subtitle": "Glückwunsch! Sie haben folgende Belohnungen erhalten:",
-    "reward1": "1000 Punkte",
+    "reward1": "🎟️ 1000 Punkte",
     "reward2": "5 Gratis-Drehungen",
     "enjoy": "Viel Spaß beim Spielen!",
     "startGame": "Spiel starten"
+  },
+  "invite": {
+    "title": "Freunde einladen",
+    "description": "Laden Sie Freunde ein und erhalten Sie Belohnungen:",
+    "reward": "Für jeden eingeladenen Freund erhalten Sie 🎟️ 100 Punkte und 💰 1 USDT"
   }
 }

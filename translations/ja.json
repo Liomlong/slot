@@ -1,7 +1,7 @@
 {
   "slotMachine": {
-    "title": "Slot Machine",
-    "points": "ポイント",
+    "title": "スロットマシン",
+    "pointsAndUsdt": "🎟️ ポイント: {points} | 💰 USDT: {usdt}",
     "spin": "スピン",
     "autoSpin": "5回自動スピン",
     "invite": "友達を招待",
@@ -9,7 +9,7 @@
     "spinsLeft": "残りスピン回数",
     "bigWin": "大当たり！",
     "smallWin": "小当たり！",
-    "congratulations": "おめでとうございます！{amount}ポイント獲得しました！",
+    "congratulations": "おめでとうございます！{amount}獲得しました！",
     "continueGame": "ゲームを続ける"
   },
   "navbar": {
@@ -24,9 +24,14 @@
   "welcomeModal": {
     "title": "新規ユーザーの方、ようこそ！",
     "subtitle": "おめでとうございます！以下の報酬を獲得しました：",
-    "reward1": "1000ポイント",
+    "reward1": "🎟️ 1000 ポイント",
     "reward2": "5回の無料スピン",
     "enjoy": "ゲームをお楽しみください！",
     "startGame": "ゲームを開始"
+  },
+  "invite": {
+    "title": "友達を招待",
+    "description": "友達を招待して報酬を獲得しましょう：",
+    "reward": "招待した友達1人につき、🎟️ 100 ポイントと 💰 1 USDTを獲得できます"
   }
 }
