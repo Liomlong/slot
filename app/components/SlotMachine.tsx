@@ -16,14 +16,14 @@ const SlotMachine: React.FC = () => {
 
   // 模拟交易所图标（请替换为实际图标路径）
   const exchangeIcons = [
+    '/images/btc.png',
     '/images/binance.png',
     '/images/okx.png',
     '/images/huobi.png',
-    '/images/tokenpocket.png',
-    '/images/gate.png',
     '/images/bitget.png',
     '/images/metamask.png',
-    '/images/btc.png',
+    '/images/gate.png',
+    '/images/tokenpocket.png',
   ];
 
   // 修改这里：初始化 slotPositions 为 [0, 0, 0]
@@ -127,14 +127,26 @@ const SlotMachine: React.FC = () => {
     return hoursSinceLastSpin >= 24;
   };
 
-  const checkWinning = (finalSlots: number[]): 'big' | 'small' | null => {
+  const checkWinning = (finalSlots: number[]): string | null => {
     const [slot1, slot2, slot3] = finalSlots;
     if (slot1 === slot2 && slot2 === slot3) {
-      return 'big';
-    } else if (slot1 === slot2 || slot2 === slot3 || slot1 === slot3) {
-      return 'small';
+      return exchangeIcons[slot1].split('/').pop()?.split('.')[0] || null;
     }
     return null;
+  };
+
+  const getWinProbability = (iconName: string): number => {
+    const probabilities: { [key: string]: number } = {
+      'btc': 0.01,
+      'binance': 0.02,
+      'okx': 0.03,
+      'huobi': 0.04,
+      'bitget': 0.05,
+      'metamask': 0.05,
+      'gate': 0.05,
+      'tokenpocket': 0.05,
+    };
+    return probabilities[iconName] || 0;
   };
 
   const playWinSound = (winType: 'big' | 'small' | null) => {
@@ -146,36 +158,42 @@ const SlotMachine: React.FC = () => {
     }
   };
 
-  const handleWinning = async (winType: 'big' | 'small' | null) => {
-    let pointsWon = 0;
-    let usdtWon = 0;
-    if (winType === 'big') {
-      pointsWon = 100;
-      usdtWon = 1;
-    } else if (winType === 'small') {
-      pointsWon = 50;
-      usdtWon = 0.5;
-    }
+  const handleWinning = async (winType: string | null) => {
+    if (!winType) return;
 
-    if (pointsWon > 0 || usdtWon > 0) {
-      const response = await fetch('/api/user/win', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tgId, pointsWon, usdtWon }),
-      });
-      const data = await response.json();
-      setPoints(data.newPoints);
-      setUsdt(data.newUsdt);
-      
-      setWinAnimation(winType);
-      setWinAmount(`🎟️ ${pointsWon} ${t('slotMachine.points')} & 💰 ${usdtWon} ${t('slotMachine.usdt')}`);
-      
-      playWinSound(winType);
+    const probability = getWinProbability(winType);
+    const randomValue = Math.random();
 
-      setTimeout(() => {
-        setWinAnimation(null);
-        setWinAmount('');
-      }, 3000);
+    if (randomValue <= probability) {
+      const usdtWon = Math.random() * (1 - 0.1) + 0.1; // 随机 0.1 到 1 之间的 USDT
+      const pointsWon = Math.floor(Math.random() * (1000 - 100 + 1)) + 100; // 随机 100 到 1000 之间的积分
+
+      // 根据中奖概率调整奖励
+      const adjustedUsdtWon = usdtWon * (1 - probability);
+      const adjustedPointsWon = Math.floor(pointsWon * (1 - probability));
+
+      try {
+        const response = await fetch('/api/user/win', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tgId, usdtWon: adjustedUsdtWon, pointsWon: adjustedPointsWon }),
+        });
+        const data = await response.json();
+        setPoints(data.newPoints);
+        setUsdt(data.newUsdt);
+        
+        setWinAnimation('big');
+        setWinAmount(`🎟️ ${adjustedPointsWon} ${t('slotMachine.points')} & 💰 ${adjustedUsdtWon.toFixed(2)} ${t('slotMachine.usdt')}`);
+        
+        playWinSound('big');
+
+        setTimeout(() => {
+          setWinAnimation(null);
+          setWinAmount('');
+        }, 3000);
+      } catch (error) {
+        console.error("Error updating win:", error);
+      }
     }
   };
 
@@ -202,19 +220,24 @@ const SlotMachine: React.FC = () => {
         }
 
         const spinDurations = [2000, 2500, 3000]; // 每个槽的旋转时间
-        const newPositions = slotPositions.map(() => Math.floor(Math.random() * totalIcons));
-
-        // 计算每个槽位需要旋转的总圈数
-        const totalSpins = newPositions.map((newPos, index) => {
-          const currentPos = slotPositions[index];
-          return totalIcons * 2 + ((newPos - currentPos + totalIcons) % totalIcons);
+        const newPositions = Array(3).fill(0).map(() => {
+          const random = Math.random();
+          let cumulativeProbability = 0;
+          for (let i = 0; i < exchangeIcons.length; i++) {
+            const iconName = exchangeIcons[i].split('/').pop()?.split('.')[0] || '';
+            cumulativeProbability += getWinProbability(iconName);
+            if (random < cumulativeProbability) {
+              return i;
+            }
+          }
+          return exchangeIcons.length - 1;
         });
 
         // 更新槽位位置
         slotRefs.forEach((ref, index) => {
           if (ref.current) {
             ref.current.style.transition = `transform ${spinDurations[index]}ms cubic-bezier(0.25, 0.1, 0.25, 1)`;
-            ref.current.style.transform = `translateY(-${totalSpins[index] * 100}%)`;
+            ref.current.style.transform = `translateY(-${(newPositions[index] + totalIcons) * 100}%)`;
           }
         });
 
@@ -319,12 +342,17 @@ const SlotMachine: React.FC = () => {
 
       {/* 老虎机界面 */}
       <div className="relative w-full max-w-xs p-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-2xl">
-        {/* 静音按钮 - 移动到左上角并减小大小 */}
+        {/* 声音按钮 - 调整样式和位置 */}
         <button
           onClick={toggleMute}
-          className="absolute top-2 left-2 text-white text-lg bg-purple-600 hover:bg-purple-700 rounded-full p-1.5 transition-colors duration-200 shadow-lg"
+          className="absolute top-2 right-2 text-white bg-purple-600 hover:bg-purple-700 rounded-full p-2 transition-colors duration-200 shadow-lg z-10 focus:outline-none focus:ring-2 focus:ring-purple-400"
+          aria-label={isMuted ? "Unmute" : "Mute"}
         >
-          {isMuted ? <IoVolumeMute /> : <IoVolumeHigh />}
+          {isMuted ? (
+            <IoVolumeMute className="w-6 h-6" />
+          ) : (
+            <IoVolumeHigh className="w-6 h-6" />
+          )}
         </button>
 
         {/* 拉杆 */}
@@ -360,18 +388,16 @@ const SlotMachine: React.FC = () => {
                   transform: `translateY(-${slotPositions[slotIndex] * 100}%)`,
                 }}
               >
-                {[...Array(3)].map((_, i) => (
-                  exchangeIcons.map((icon, iconIndex) => (
-                    <div key={`${i}-${iconIndex}`} className="w-20 h-20 flex items-center justify-center">
-                      <Image
-                        src={icon}
-                        alt="Exchange Icon"
-                        width={60}
-                        height={60}
-                        className="object-contain"
-                      />
-                    </div>
-                  ))
+                {[...Array(totalIcons * 2)].map((_, i) => (
+                  <div key={i} className="w-20 h-20 flex items-center justify-center">
+                    <Image
+                      src={exchangeIcons[i % totalIcons]}
+                      alt="Exchange Icon"
+                      width={60}
+                      height={60}
+                      className="object-contain"
+                    />
+                  </div>
                 ))}
               </div>
             </div>
