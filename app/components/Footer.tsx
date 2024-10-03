@@ -10,8 +10,8 @@ const Footer: React.FC = () => {
   const navItems = [
     { name: 'Slot', icon: '🎰', path: '/' },
     { name: 'Rank', icon: '🏆', path: '/rank' },
-    { name: 'Friend', icon: '👥', path: '/friend' },
-    { name: 'Wallet', icon: '👛', path: '/wallet' },
+    { name: 'Friend', icon: '👥', path: '/friend' },  // 更新为双人剪影emoji，表示朋友或社交
+    { name: 'Wallet', icon: '💰', path: '/wallet' },  // 保持钱袋emoji不变
   ];
 
   return (
