@@ -38,6 +38,45 @@ const SlotMachine: React.FC = () => {
   const [userPhotoUrl, setUserPhotoUrl] = useState<string | null>(null);
 
   useEffect(() => {
+    const initTelegramApp = () => {
+      const tg = (window as any).Telegram?.WebApp;
+      if (tg) {
+        console.log("Telegram WebApp found:", tg);
+        console.log("InitData:", tg.initData);
+        console.log("InitDataUnsafe:", tg.initDataUnsafe);
+        const user = tg.initDataUnsafe?.user;
+        console.log("Telegram user:", user);
+        if (user) {
+          setTgId(user.id);
+          setUsername(user.username || `${user.first_name} ${user.last_name}`.trim());
+          setUserPhotoUrl(user.photo_url);
+          
+          // 获取用户信息
+          fetch(`/api/user/info?tgId=${user.id}&username=${encodeURIComponent(user.username || '')}`)
+            .then(res => res.json())
+            .then(data => {
+              console.log("User info from API:", data);
+              setPoints(data.points);
+              setUsdt(data.usdt);
+              setSpinsLeft(data.spinsLeft);
+              setLastSpinTime(data.lastSpinTime);
+              if (data.username) {
+                setUsername(data.username);
+              }
+            })
+            .catch(error => console.error('Error fetching user info:', error));
+        } else {
+          console.log("No user found in Telegram WebApp");
+        }
+      } else {
+        console.log("Telegram WebApp not available");
+      }
+    };
+
+    initTelegramApp();
+  }, []);
+
+  useEffect(() => {
     setAudio(new Audio('/sounds/spin.mp3'));
   }, []);
 
