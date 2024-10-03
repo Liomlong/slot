@@ -14,7 +14,6 @@ const SlotMachine: React.FC = () => {
   const [usdt, setUsdt] = useState(0);
   const [spinsLeft, setSpinsLeft] = useState(3);
 
-  // 模拟交易所图标（请替换为实际图标路径）
   const exchangeIcons = [
     '/images/btc.png',
     '/images/binance.png',
@@ -26,38 +25,20 @@ const SlotMachine: React.FC = () => {
     '/images/tokenpocket.png',
   ];
 
-  // 修改这里：初始化 slotPositions 为 [0, 0, 0]
-  const [slotPositions, setSlotPositions] = useState<number[]>([0, 0, 0]);
   const [isSpinning, setIsSpinning] = useState(false);
-
-  const totalIcons = exchangeIcons.length;
-
-  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
-  const bigWinAudioRef = useRef<HTMLAudioElement | null>(null);
-  const smallWinAudioRef = useRef<HTMLAudioElement | null>(null);
-
-  const [autoSpinCount, setAutoSpinCount] = useState(0);
-
-  const [tgId, setTgId] = useState<number | null>(null);
-
-  const [isMuted, setIsMuted] = useState(false);
-
-  const [autoSpinProgress, setAutoSpinProgress] = useState(0);
-
-  const [winAnimation, setWinAnimation] = useState<'big' | 'small' | null>(null);
-  const [winAmount, setWinAmount] = useState<string>('');
-
-  const [lastSpinTime, setLastSpinTime] = useState<number | null>(null);
-
-  const [userPhotoUrl, setUserPhotoUrl] = useState<string | null>(null);
-
+  const [finalPositions, setFinalPositions] = useState<number[]>([0, 0, 0]);
   const slotRefs = [useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null)];
 
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [winAnimation, setWinAnimation] = useState<'big' | 'small' | null>(null);
+  const [winAmount, setWinAmount] = useState<string>('');
+  const [tgId, setTgId] = useState<number | null>(null);
+  const [lastSpinTime, setLastSpinTime] = useState<number | null>(null);
+  const [userPhotoUrl, setUserPhotoUrl] = useState<string | null>(null);
+
   useEffect(() => {
-    // 在客户端初始化音频
     setAudio(new Audio('/sounds/spin.mp3'));
-    bigWinAudioRef.current = new Audio('/sounds/big-win.mp3');
-    smallWinAudioRef.current = new Audio('/sounds/small-win.mp3');
   }, []);
 
   const toggleMute = () => {
@@ -67,72 +48,11 @@ const SlotMachine: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const referrerId = searchParams.get('ref');
-    if (referrerId && tgId) {
-      // 将 referrerId 和当前用户的 tgId 发送到后端，记录邀请关系
-      fetch('/api/invite', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ referrerId, tgId }),
-      });
-    }
-  }, [tgId]);
-
-  useEffect(() => {
-    console.log("Initializing Telegram WebApp");
-    const tg = (window as any).Telegram?.WebApp;
-    console.log("Telegram object:", tg);
-    if (tg) {
-      console.log("Telegram WebApp found:", tg);
-      console.log("InitData:", tg.initData);
-      console.log("InitDataUnsafe:", tg.initDataUnsafe);
-      const user = tg.initDataUnsafe?.user;
-      console.log("Telegram user:", user);
-      if (user) {
-        setTgId(user.id);
-        setUsername(user.username || `${user.first_name} ${user.last_name}`.trim());
-        console.log("User photo URL:", user.photo_url);
-        setUserPhotoUrl(user.photo_url);
-        
-        // 获取用户信息
-        fetch(`/api/user/info?tgId=${user.id}&username=${encodeURIComponent(user.username || '')}`)
-          .then(res => res.json())
-          .then(data => {
-            console.log("User info from API:", data);
-            setPoints(data.points);
-            setUsdt(data.usdt);
-            setSpinsLeft(data.spinsLeft);
-            setLastSpinTime(data.lastSpinTime);
-            if (data.username) {
-              setUsername(data.username);
-            }
-          })
-          .catch(error => console.error('Error fetching user info:', error));
-      } else {
-        console.log("No user found in Telegram WebApp");
-      }
-    } else {
-      console.log("Telegram WebApp not available");
-    }
-  }, []);
-
   const isFreeSpinAvailable = () => {
     if (!lastSpinTime) return true;
     const now = new Date().getTime();
     const hoursSinceLastSpin = (now - lastSpinTime) / (1000 * 60 * 60);
     return hoursSinceLastSpin >= 24;
-  };
-
-  const checkWinning = (finalSlots: number[]): string | null => {
-    const [slot1, slot2, slot3] = finalSlots;
-    if (slot1 === slot2 && slot2 === slot3) {
-      return exchangeIcons[slot1].split('/').pop()?.split('.')[0] || null;
-    }
-    return null;
   };
 
   const getWinProbability = (iconName: string): number => {
@@ -149,77 +69,24 @@ const SlotMachine: React.FC = () => {
     return probabilities[iconName] || 0;
   };
 
-  const playWinSound = (winType: 'big' | 'small' | null) => {
-    if (isMuted) return;
-    if (winType === 'big' && bigWinAudioRef.current) {
-      bigWinAudioRef.current.play();
-    } else if (winType === 'small' && smallWinAudioRef.current) {
-      smallWinAudioRef.current.play();
-    }
-  };
-
-  const handleWinning = async (winType: string | null) => {
-    if (!winType) return;
-
-    const probability = getWinProbability(winType);
-    const randomValue = Math.random();
-
-    if (randomValue <= probability) {
-      const usdtWon = Math.random() * (1 - 0.1) + 0.1; // 随机 0.1 到 1 之间的 USDT
-      const pointsWon = Math.floor(Math.random() * (1000 - 100 + 1)) + 100; // 随机 100 到 1000 之间的积分
-
-      // 根据中奖概率调整奖励
-      const adjustedUsdtWon = usdtWon * (1 - probability);
-      const adjustedPointsWon = Math.floor(pointsWon * (1 - probability));
-
-      try {
-        const response = await fetch('/api/user/win', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tgId, usdtWon: adjustedUsdtWon, pointsWon: adjustedPointsWon }),
-        });
-        const data = await response.json();
-        setPoints(data.newPoints);
-        setUsdt(data.newUsdt);
-        
-        setWinAnimation('big');
-        setWinAmount(`🎟️ ${adjustedPointsWon} ${t('slotMachine.points')} & 💰 ${adjustedUsdtWon.toFixed(2)} ${t('slotMachine.usdt')}`);
-        
-        playWinSound('big');
-
-        setTimeout(() => {
-          setWinAnimation(null);
-          setWinAmount('');
-        }, 3000);
-      } catch (error) {
-        console.error("Error updating win:", error);
-      }
-    }
-  };
-
-  const handleSpin = async (auto = false) => {
+  const handleSpin = async () => {
     if ((spinsLeft > 0 || isFreeSpinAvailable()) && !isSpinning && tgId) {
       setIsSpinning(true);
+      if (!isMuted && audio) {
+        audio.play();
+      }
+
       try {
         const response = await fetch('/api/user/spin', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tgId, isFreeSpin: isFreeSpinAvailable() }),
         });
-        if (!response.ok) {
-          throw new Error('Spin request failed');
-        }
+        if (!response.ok) throw new Error('Spin request failed');
         const data = await response.json();
         setSpinsLeft(data.spinsLeft);
         setLastSpinTime(data.lastSpinTime);
 
-        if (!isMuted && audio) {
-          audio.play();
-        }
-
-        const spinDurations = [2000, 2500, 3000]; // 每个槽的旋转时间
         const newPositions = Array(3).fill(0).map(() => {
           const random = Math.random();
           let cumulativeProbability = 0;
@@ -233,58 +100,62 @@ const SlotMachine: React.FC = () => {
           return exchangeIcons.length - 1;
         });
 
-        // 更新槽位位置
-        slotRefs.forEach((ref, index) => {
-          if (ref.current) {
-            ref.current.style.transition = `transform ${spinDurations[index]}ms cubic-bezier(0.25, 0.1, 0.25, 1)`;
-            ref.current.style.transform = `translateY(-${(newPositions[index] + totalIcons) * 100}%)`;
-          }
-        });
-
-        // 等待最长的旋转完成
-        await new Promise(resolve => setTimeout(resolve, Math.max(...spinDurations)));
-
-        // 设置最终位置
-        setSlotPositions(newPositions);
-
-        // 重置槽位样式，使其立即跳转到最终位置
         slotRefs.forEach((ref, index) => {
           if (ref.current) {
             ref.current.style.transition = 'none';
-            ref.current.style.transform = `translateY(-${newPositions[index] * 100}%)`;
+            ref.current.style.transform = 'translateY(0)';
+            void ref.current.offsetHeight; // Force reflow
+            ref.current.style.transition = `transform ${2 + index * 0.5}s cubic-bezier(0.25, 0.1, 0.25, 1)`;
+            ref.current.style.transform = `translateY(${-newPositions[index] * 100}%)`;
           }
         });
 
-        setIsSpinning(false);
-        
-        const winType = checkWinning(newPositions);
-        if (winType) {
-          handleWinning(winType);
-        } else {
-          // 处理没有中奖的情况
-          setWinAnimation(null);
-          setWinAmount('');
-        }
-        
-        if (auto && autoSpinCount > 1) {
-          setAutoSpinCount(autoSpinCount - 1);
-          setTimeout(() => handleSpin(true), 1000);
-        } else {
-          setAutoSpinCount(0);
-        }
+        setFinalPositions(newPositions);
+
+        setTimeout(() => {
+          setIsSpinning(false);
+          checkWinning(newPositions);
+        }, 4000); // Adjust this timeout based on the longest animation duration
+
       } catch (error) {
         console.error("Error during spin:", error);
         setIsSpinning(false);
         alert("旋转失败，请稍后再试");
       }
-    } else {
-      console.log("Spin conditions not met", { spinsLeft, isSpinning, tgId, isFreeSpinAvailable: isFreeSpinAvailable() });
-      if (spinsLeft <= 0 && !isFreeSpinAvailable()) {
-        alert("您的旋转次数已用完，请等待24小时后的免费旋转");
-      } else if (!tgId) {
-        alert("请先登录");
-        console.error("tgId is null, user not logged in");
-      }
+    }
+  };
+
+  const checkWinning = (positions: number[]) => {
+    if (positions[0] === positions[1] && positions[1] === positions[2]) {
+      const iconName = exchangeIcons[positions[0]].split('/').pop()?.split('.')[0] || '';
+      handleWinning(iconName);
+    }
+  };
+
+  const handleWinning = async (iconName: string) => {
+    const probability = getWinProbability(iconName);
+    const usdtWon = (Math.random() * 0.9 + 0.1) * (1 - probability);
+    const pointsWon = Math.floor((Math.random() * 901 + 100) * (1 - probability));
+
+    try {
+      const response = await fetch('/api/user/win', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tgId, usdtWon, pointsWon }),
+      });
+      const data = await response.json();
+      setPoints(data.newPoints);
+      setUsdt(data.newUsdt);
+      
+      setWinAnimation('big');
+      setWinAmount(`🎟️ ${pointsWon} ${t('slotMachine.points')} & 💰 ${usdtWon.toFixed(2)} ${t('slotMachine.usdt')}`);
+
+      setTimeout(() => {
+        setWinAnimation(null);
+        setWinAmount('');
+      }, 3000);
+    } catch (error) {
+      console.error("Error updating win:", error);
     }
   };
 
@@ -342,61 +213,27 @@ const SlotMachine: React.FC = () => {
 
       {/* 老虎机界面 */}
       <div className="relative w-full max-w-xs p-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-2xl">
-        {/* 声音按钮 - 调整样式和位置 */}
+        {/* 声音按钮 */}
         <button
           onClick={toggleMute}
           className="absolute top-2 right-2 text-white bg-purple-600 hover:bg-purple-700 rounded-full p-2 transition-colors duration-200 shadow-lg z-10 focus:outline-none focus:ring-2 focus:ring-purple-400"
           aria-label={isMuted ? "Unmute" : "Mute"}
         >
-          {isMuted ? (
-            <IoVolumeMute className="w-6 h-6" />
-          ) : (
-            <IoVolumeHigh className="w-6 h-6" />
-          )}
+          {isMuted ? <IoVolumeMute className="w-6 h-6" /> : <IoVolumeHigh className="w-6 h-6" />}
         </button>
 
-        {/* 拉杆 */}
-        <div className="absolute right-[-40px] top-1/2 transform -translate-y-1/2 h-36">
-          <div className="relative h-full w-12">
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-red-600 rounded-full shadow-md"></div>
-            <div className="absolute top-3 left-1/2 transform -translate-x-1/2 w-1 h-28 bg-gradient-to-b from-gray-300 to-gray-400 rounded-full shadow-md"></div>
-            <button
-              onClick={() => handleSpin()}
-              disabled={isSpinning}
-              className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-14 rounded-b-full shadow-lg transition-transform duration-200 ${
-                isSpinning 
-                  ? 'bg-gray-400 translate-y-1' 
-                  : 'bg-red-600 hover:bg-red-700 hover:translate-y-0.5 active:translate-y-1'
-              }`}
-            >
-              <span className="text-white text-xl">▼</span>
-            </button>
-          </div>
-        </div>
-
         {/* 老虎机图标 */}
-        <div className="grid grid-cols-3 gap-2 relative overflow-hidden bg-white rounded-lg p-2">
+        <div className="grid grid-cols-3 gap-2 bg-white rounded-lg p-2 overflow-hidden">
           {[0, 1, 2].map((slotIndex) => (
-            <div
-              key={slotIndex}
-              className="w-20 h-20 bg-gradient-to-b from-gray-200 to-gray-300 rounded-md shadow-inner overflow-hidden"
-            >
+            <div key={slotIndex} className="w-20 h-60 bg-gray-200 rounded-md overflow-hidden">
               <div
                 ref={slotRefs[slotIndex]}
-                className="flex flex-col items-center transition-transform duration-1000 ease-in-out"
-                style={{
-                  transform: `translateY(-${slotPositions[slotIndex] * 100}%)`,
-                }}
+                className="flex flex-col transition-transform duration-1000 ease-in-out"
+                style={{ transform: `translateY(0)` }}
               >
-                {[...Array(totalIcons * 2)].map((_, i) => (
-                  <div key={i} className="w-20 h-20 flex items-center justify-center">
-                    <Image
-                      src={exchangeIcons[i % totalIcons]}
-                      alt="Exchange Icon"
-                      width={60}
-                      height={60}
-                      className="object-contain"
-                    />
+                {exchangeIcons.map((icon, iconIndex) => (
+                  <div key={iconIndex} className="w-20 h-20 flex items-center justify-center">
+                    <Image src={icon} alt="Exchange Icon" width={60} height={60} className="object-contain" />
                   </div>
                 ))}
               </div>
@@ -404,72 +241,58 @@ const SlotMachine: React.FC = () => {
           ))}
         </div>
 
-        {/* 剩余次数和按钮 */}
-        <div className="flex flex-col items-center mt-4">
-          <span className="text-white text-sm mb-2">
-            {isFreeSpinAvailable() ? t('slotMachine.freeSpinAvailable') : `${t('slotMachine.spinsLeft')}: ${spinsLeft}`}
-          </span>
-          
-          {/* Spin 按钮 */}
+        {/* 旋转按钮 */}
+        <button
+          onClick={handleSpin}
+          disabled={isSpinning || (!isFreeSpinAvailable() && spinsLeft === 0) || !tgId}
+          className={`mt-4 w-full py-3 rounded-full text-white font-bold ${
+            isSpinning || (!isFreeSpinAvailable() && spinsLeft === 0) || !tgId
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-yellow-500 hover:bg-yellow-600'
+          }`}
+        >
+          {isSpinning ? (
+            <>
+              <FaSpinner className="inline-block animate-spin mr-2" />
+              {t('slotMachine.spinning')}
+            </>
+          ) : (
+            <>
+              <FaPlay className="inline-block mr-2" />
+              {t('slotMachine.spin')}
+            </>
+          )}
+        </button>
+
+        {/* 其他按钮（邀请好友等） */}
+        <div className="flex space-x-2 w-full mt-2">
           <button
-            onClick={() => handleSpin()}
-            disabled={isSpinning || (!isFreeSpinAvailable() && spinsLeft === 0) || !tgId}
-            className={`flex items-center justify-center px-6 py-3 text-lg font-bold rounded-full shadow-lg mb-2 w-full ${
-              isSpinning || (!isFreeSpinAvailable() && spinsLeft === 0) || !tgId
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-yellow-500 hover:bg-yellow-600 text-white'
+            onClick={handleInvite}
+            className="flex items-center justify-center px-4 py-2 text-sm bg-green-600 text-white rounded-full shadow hover:bg-green-700 flex-1"
+          >
+            <FaUserPlus className="mr-2" />
+            {t('slotMachine.invite')}
+          </button>
+          <button
+            onClick={() => {
+              // 处理自动旋转逻辑
+            }}
+            disabled={isSpinning || spinsLeft < 5}
+            className={`flex items-center justify-center px-4 py-2 text-sm rounded-full shadow flex-1 ${
+              isSpinning || spinsLeft < 5 ? 'bg-gray-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 text-white'
             }`}
           >
-            {isSpinning ? (
-              <FaSpinner className="animate-spin mr-2" />
-            ) : (
-              <FaPlay className="mr-2" />
-            )}
-            {isSpinning ? t('slotMachine.spinning') : t('slotMachine.spin')}
+            <FaRedo className="mr-2" />
+            {t('slotMachine.autoSpin')}
           </button>
-          
-          {/* 其他按钮 */}
-          <div className="flex space-x-2 w-full">
-            <button
-              onClick={handleInvite}
-              className="flex items-center justify-center px-4 py-2 text-sm bg-green-600 text-white rounded-full shadow hover:bg-green-700 flex-1"
-            >
-              <FaUserPlus className="mr-2" />
-              {t('slotMachine.invite')}
-            </button>
-            <button
-              onClick={() => {
-                setAutoSpinCount(5);
-                handleSpin(true);
-              }}
-              disabled={isSpinning || spinsLeft < 5}
-              className={`flex items-center justify-center px-4 py-2 text-sm rounded-full shadow flex-1 ${
-                isSpinning || spinsLeft < 5 ? 'bg-gray-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 text-white'
-              }`}
-            >
-              <FaRedo className="mr-2" />
-              {t('slotMachine.autoSpin')}
-            </button>
-          </div>
         </div>
-
-        {autoSpinCount > 0 && (
-          <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-            <div
-              className="bg-blue-600 h-2.5 rounded-full"
-              style={{ width: `${autoSpinProgress}%` }}
-            ></div>
-          </div>
-        )}
       </div>
 
       {/* 中奖弹窗 */}
       {winAnimation && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-xl text-center">
-            <h2 className={`text-4xl font-bold mb-4 ${winAnimation === 'big' ? 'text-yellow-500' : 'text-green-500'}`}>
-              {winAnimation === 'big' ? t('slotMachine.bigWin') : t('slotMachine.smallWin')}
-            </h2>
+            <h2 className="text-4xl font-bold mb-4 text-yellow-500">{t('slotMachine.bigWin')}</h2>
             <p className="text-2xl mb-4">{t('slotMachine.congratulations', { amount: winAmount })}</p>
             <button
               onClick={() => {
@@ -484,7 +307,7 @@ const SlotMachine: React.FC = () => {
         </div>
       )}
 
-      {/* 添加调试信息 */}
+      {/* 调试信息 */}
       <div className="mt-4 text-white text-xs">
         <p>tgId: {tgId}</p>
         <p>spinsLeft: {spinsLeft}</p>
