@@ -3,15 +3,17 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '../hooks/useTranslation';
 
 const Footer: React.FC = () => {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const navItems = [
-    { name: 'Slot', icon: '🎰', path: '/' },
-    { name: 'Rank', icon: '🏆', path: '/rank' },
-    { name: 'Friend', icon: '👥', path: '/friend' },  // 更新为双人剪影emoji，表示朋友或社交
-    { name: 'Wallet', icon: '💰', path: '/wallet' },  // 保持钱袋emoji不变
+    { name: t('footer.slot'), icon: '🎰', path: '/' },
+    { name: t('footer.rank'), icon: '🏆', path: '/rank' },
+    { name: t('footer.friend'), icon: '👥', path: '/friend' },
+    { name: t('footer.wallet'), icon: '💰', path: '/wallet' },
   ];
 
   return (

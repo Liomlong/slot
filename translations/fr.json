@@ -1,0 +1,32 @@
+{
+  "slotMachine": {
+    "title": "Slot Machine",
+    "points": "Points",
+    "spin": "Tourner",
+    "autoSpin": "Tour automatique 5 fois",
+    "invite": "Inviter des amis",
+    "freeSpinAvailable": "Tour gratuit disponible !",
+    "spinsLeft": "Tours restants",
+    "bigWin": "Grande victoire !",
+    "smallWin": "Petite victoire !",
+    "congratulations": "Félicitations ! Vous avez gagné {amount} points !",
+    "continueGame": "Continuer le jeu"
+  },
+  "navbar": {
+    "title": "Web3Lucky"
+  },
+  "footer": {
+    "slot": "Machine à sous",
+    "rank": "Classement",
+    "friend": "Ami",
+    "wallet": "Portefeuille"
+  },
+  "welcomeModal": {
+    "title": "Bienvenue nouvel utilisateur !",
+    "subtitle": "Félicitations ! Vous avez reçu les récompenses suivantes :",
+    "reward1": "1000 Points",
+    "reward2": "5 Tours gratuits",
+    "enjoy": "Profitez bien de votre jeu !",
+    "startGame": "Commencer le jeu"
+  }
+}

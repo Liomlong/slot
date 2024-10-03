@@ -3,10 +3,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import { useTranslation } from '../hooks/useTranslation';
 
 const SlotMachine: React.FC = () => {
+  const { t } = useTranslation();
   const [username, setUsername] = useState<string | null>(null);
-  const [points, setPoints] = useState(100);
+  const [points, setPoints] = useState(0);
+  const [usdt, setUsdt] = useState(0);
   const [spinsLeft, setSpinsLeft] = useState(3);
 
   // 模拟交易所图标（请替换为实际图标路径）
@@ -35,7 +38,7 @@ const SlotMachine: React.FC = () => {
   const [autoSpinProgress, setAutoSpinProgress] = useState(0);
 
   const [winAnimation, setWinAnimation] = useState<'big' | 'small' | null>(null);
-  const [winAmount, setWinAmount] = useState<number | null>(null);
+  const [winAmount, setWinAmount] = useState<string | null>(null);
 
   const [lastSpinTime, setLastSpinTime] = useState<number | null>(null);
 
@@ -96,6 +99,7 @@ const SlotMachine: React.FC = () => {
           .then(data => {
             console.log("User info from API:", data);
             setPoints(data.points);
+            setUsdt(data.usdt);
             setSpinsLeft(data.spinsLeft);
             setLastSpinTime(data.lastSpinTime);
             if (data.username) {
@@ -138,30 +142,31 @@ const SlotMachine: React.FC = () => {
   };
 
   const handleWinning = async (winType: 'big' | 'small' | null) => {
-    let winAmount = 0;
+    let pointsWon = 0;
+    let usdtWon = 0;
     if (winType === 'big') {
-      winAmount = 100;
+      pointsWon = 100;
+      usdtWon = 1;
     } else if (winType === 'small') {
-      winAmount = 50;
+      pointsWon = 50;
+      usdtWon = 0.5;
     }
 
-    if (winAmount > 0) {
+    if (pointsWon > 0 || usdtWon > 0) {
       const response = await fetch('/api/user/win', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tgId, winAmount }),
+        body: JSON.stringify({ tgId, pointsWon, usdtWon }),
       });
       const data = await response.json();
       setPoints(data.newPoints);
+      setUsdt(data.newUsdt);
       
-      // 修改这里
       setWinAnimation(winType);
-      setWinAmount(winAmount);
+      setWinAmount(`🎟️ ${pointsWon} ${t('slotMachine.points')} & 💰 ${usdtWon} ${t('slotMachine.usdt')}`);
       
-      // 播放中奖音效
       playWinSound(winType);
 
-      // 3秒后清除动画状态
       setTimeout(() => {
         setWinAnimation(null);
         setWinAmount(null);
@@ -294,7 +299,8 @@ const SlotMachine: React.FC = () => {
         </div>
         <div className="flex-grow">
           <p className="text-white font-semibold">{username || 'Loading...'}</p>
-          <p className="text-sm text-gray-300">Points: {points}</p>
+          <p className="text-sm text-gray-300">{t('slotMachine.points')}: {points}</p>
+          <p className="text-sm text-gray-300">{t('slotMachine.usdt')}: {usdt}</p>
         </div>
       </div>
 
@@ -348,7 +354,7 @@ const SlotMachine: React.FC = () => {
         {/* 剩余次数和按钮 */}
         <div className="flex flex-col items-center mt-4">
           <span className="text-white text-sm">
-            {isFreeSpinAvailable() ? '免费旋转可用!' : `剩余次数：${spinsLeft}`}
+            {isFreeSpinAvailable() ? t('slotMachine.freeSpinAvailable') : `${t('slotMachine.spinsLeft')}: ${spinsLeft}`}
           </span>
           <button
             onClick={() => handleSpin()}
@@ -357,13 +363,13 @@ const SlotMachine: React.FC = () => {
               isSpinning || (!isFreeSpinAvailable() && spinsLeft === 0) || !tgId ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700 text-white'
             }`}
           >
-            {isSpinning ? '旋转中...' : 'Spin'}
+            {isSpinning ? '旋转中...' : t('slotMachine.spin')}
           </button>
           <button
             onClick={handleInvite}
             className="mt-2 px-4 py-2 text-sm bg-green-600 text-white rounded-full shadow hover:bg-green-700"
           >
-            邀请好友
+            {t('slotMachine.invite')}
           </button>
           <button
             onClick={() => {
@@ -375,7 +381,7 @@ const SlotMachine: React.FC = () => {
               isSpinning || spinsLeft < 5 ? 'bg-gray-400' : 'bg-purple-600 hover:bg-purple-700 text-white'
             }`}
           >
-            自动旋转5次
+            {t('slotMachine.autoSpin')}
           </button>
         </div>
 
@@ -394,9 +400,9 @@ const SlotMachine: React.FC = () => {
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-xl text-center">
             <h2 className={`text-4xl font-bold mb-4 ${winAnimation === 'big' ? 'text-yellow-500' : 'text-green-500'}`}>
-              {winAnimation === 'big' ? '大奖!' : '小奖!'}
+              {winAnimation === 'big' ? t('slotMachine.bigWin') : t('slotMachine.smallWin')}
             </h2>
-            <p className="text-2xl mb-4">恭喜您赢得 {winAmount} 积分!</p>
+            <p className="text-2xl mb-4">{t('slotMachine.congratulations', { amount: winAmount })}</p>
             <button
               onClick={() => {
                 setWinAnimation(null);
@@ -404,7 +410,7 @@ const SlotMachine: React.FC = () => {
               }}
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             >
-              继续游戏
+              {t('slotMachine.continueGame')}
             </button>
           </div>
         </div>

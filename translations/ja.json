@@ -1,0 +1,32 @@
+{
+  "slotMachine": {
+    "title": "Slot Machine",
+    "points": "ポイント",
+    "spin": "スピン",
+    "autoSpin": "5回自動スピン",
+    "invite": "友達を招待",
+    "freeSpinAvailable": "無料スピン利用可能！",
+    "spinsLeft": "残りスピン回数",
+    "bigWin": "大当たり！",
+    "smallWin": "小当たり！",
+    "congratulations": "おめでとうございます！{amount}ポイント獲得しました！",
+    "continueGame": "ゲームを続ける"
+  },
+  "navbar": {
+    "title": "Web3Lucky"
+  },
+  "footer": {
+    "slot": "スロット",
+    "rank": "ランキング",
+    "friend": "フレンド",
+    "wallet": "ウォレット"
+  },
+  "welcomeModal": {
+    "title": "新規ユーザーの方、ようこそ！",
+    "subtitle": "おめでとうございます！以下の報酬を獲得しました：",
+    "reward1": "1000ポイント",
+    "reward2": "5回の無料スピン",
+    "enjoy": "ゲームをお楽しみください！",
+    "startGame": "ゲームを開始"
+  }
+}

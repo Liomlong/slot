@@ -1,0 +1,32 @@
+{
+  "slotMachine": {
+    "title": "Slot Machine",
+    "points": "포인트",
+    "spin": "스핀",
+    "autoSpin": "5회 자동 스핀",
+    "invite": "친구 초대",
+    "freeSpinAvailable": "무료 스핀 사용 가능!",
+    "spinsLeft": "남은 스핀 횟수",
+    "bigWin": "대박!",
+    "smallWin": "소박!",
+    "congratulations": "축하합니다! {amount} 포인트를 획득하셨습니다!",
+    "continueGame": "게임 계속하기"
+  },
+  "navbar": {
+    "title": "Web3Lucky"
+  },
+  "footer": {
+    "slot": "슬롯",
+    "rank": "랭킹",
+    "friend": "친구",
+    "wallet": "지갑"
+  },
+  "welcomeModal": {
+    "title": "신규 사용자 환영합니다!",
+    "subtitle": "축하합니다! 다음과 같은 보상을 받으셨습니다:",
+    "reward1": "1000 포인트",
+    "reward2": "5회 무료 스핀",
+    "enjoy": "게임을 즐겁게 즐기세요!",
+    "startGame": "게임 시작"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "slotMachine": {
+    "title": "Slot Machine",
+    "points": "Punkte",
+    "spin": "Drehen",
+    "autoSpin": "5 Mal automatisch drehen",
+    "invite": "Freunde einladen",
+    "freeSpinAvailable": "Freier Dreh verfügbar!",
+    "spinsLeft": "Verbleibende Drehungen",
+    "bigWin": "Großer Gewinn!",
+    "smallWin": "Kleiner Gewinn!",
+    "congratulations": "Glückwunsch! Sie haben {amount} Punkte gewonnen!",
+    "continueGame": "Spiel fortsetzen"
+  },
+  "navbar": {
+    "title": "Web3Lucky"
+  },
+  "footer": {
+    "slot": "Spielautomat",
+    "rank": "Rangliste",
+    "friend": "Freund",
+    "wallet": "Geldbörse"
+  },
+  "welcomeModal": {
+    "title": "Willkommen neuer Benutzer!",
+    "subtitle": "Glückwunsch! Sie haben folgende Belohnungen erhalten:",
+    "reward1": "1000 Punkte",
+    "reward2": "5 Gratis-Drehungen",
+    "enjoy": "Viel Spaß beim Spielen!",
+    "startGame": "Spiel starten"
+  }
+}

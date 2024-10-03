@@ -1,0 +1,38 @@
+{
+  "slotMachine": {
+    "title": "Slot Machine",
+    "points": "🎟️ Points",
+    "usdt": "💰 USDT",
+    "spin": "Spin",
+    "autoSpin": "Auto Spin 5 Times",
+    "invite": "Invite Friends",
+    "freeSpinAvailable": "Free Spin Available!",
+    "spinsLeft": "Spins Left",
+    "bigWin": "Big Win!",
+    "smallWin": "Small Win!",
+    "congratulations": "Congratulations! You won {amount}!",
+    "continueGame": "Continue Game"
+  },
+  "navbar": {
+    "title": "Web3Lucky"
+  },
+  "footer": {
+    "slot": "Slot",
+    "rank": "Rank",
+    "friend": "Friend",
+    "wallet": "Wallet"
+  },
+  "welcomeModal": {
+    "title": "Welcome New User!",
+    "subtitle": "Congratulations! You've received the following rewards:",
+    "reward1": "🎟️ 1000 Points",
+    "reward2": "5 Free Spins",
+    "enjoy": "Enjoy your game!",
+    "startGame": "Start Game"
+  },
+  "invite": {
+    "title": "Invite Friends",
+    "description": "Invite friends and get rewards:",
+    "reward": "For each friend invited, you'll receive 🎟️ 100 Points and 💰 1 USDT"
+  }
+}
