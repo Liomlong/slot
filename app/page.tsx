@@ -6,7 +6,7 @@ import Navbar from './components/Navbar';
 import SlotMachine from './components/SlotMachine';
 import Footer from './components/Footer';
 import WelcomeModal from './components/WelcomeModal';
-import UserInfo from '../components/UserInfo';
+import UserInfo from './components/UserInfo'; // 修改这里
 
 const HomePage: React.FC = () => {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);

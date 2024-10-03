@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { TelegramUser } from '../types';
+import { TelegramUser } from '../types'; // 修改这里
 
 declare global {
   interface Window {

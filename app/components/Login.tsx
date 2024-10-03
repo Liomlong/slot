@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TelegramUser } from '../types'; // 假设TelegramUser类型定义在这个文件中
+import { TelegramUser } from '../types'; // 修改这里
 
 declare global {
   interface Window {

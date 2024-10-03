@@ -2,7 +2,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { LanguageProvider } from './contexts/LanguageContext'
-import { Html, Head, Main, NextScript } from 'next/document'
+import Script from 'next/script'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -20,6 +20,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
       </head>
       <body className={inter.className}>
         <LanguageProvider>
@@ -28,18 +29,4 @@ export default function RootLayout({
       </body>
     </html>
   )
-}
-
-export default function Document() {
-  return (
-    <Html>
-      <Head>
-        <script src="https://telegram.org/js/telegram-web-app.js"></script>
-      </Head>
-      <body>
-        <Main />
-        <NextScript />
-      </body>
-    </Html>
-  );
 }
