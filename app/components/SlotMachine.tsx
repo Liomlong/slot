@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useTranslation } from '../hooks/useTranslation';
+import { IoVolumeHigh, IoVolumeMute } from 'react-icons/io5';
 
 const SlotMachine: React.FC = () => {
   const { t } = useTranslation();
@@ -24,7 +25,8 @@ const SlotMachine: React.FC = () => {
     '/images/btc.png',
   ];
 
-  const [slots, setSlots] = useState<number[]>([0, 0, 0]);
+  // 修改这里：初始化 slotPositions 为 [0, 0, 0]
+  const [slotPositions, setSlotPositions] = useState<number[]>([0, 0, 0]);
   const [isSpinning, setIsSpinning] = useState(false);
 
   const totalIcons = exchangeIcons.length;
@@ -47,6 +49,8 @@ const SlotMachine: React.FC = () => {
   const [lastSpinTime, setLastSpinTime] = useState<number | null>(null);
 
   const [userPhotoUrl, setUserPhotoUrl] = useState<string | null>(null);
+
+  const slotRefs = [useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null)];
 
   useEffect(() => {
     // 在客户端初始化音频
@@ -175,7 +179,6 @@ const SlotMachine: React.FC = () => {
   };
 
   const handleSpin = async (auto = false) => {
-    console.log("Spin attempt:", { tgId, spinsLeft, isSpinning, isFreeSpinAvailable: isFreeSpinAvailable() });
     if ((spinsLeft > 0 || isFreeSpinAvailable()) && !isSpinning && tgId) {
       setIsSpinning(true);
       try {
@@ -197,45 +200,38 @@ const SlotMachine: React.FC = () => {
           audio.play();
         }
 
-        let spins = 0;
-        const maxSpins = 20;
+        const spinDurations = [2000, 2500, 3000]; // 每个槽的旋转时间
+        const newPositions = slotPositions.map(() => Math.floor(Math.random() * totalIcons));
 
-        const spinInterval = setInterval(() => {
-          setSlots([
-            Math.floor(Math.random() * totalIcons),
-            Math.floor(Math.random() * totalIcons),
-            Math.floor(Math.random() * totalIcons),
-          ]);
-          spins++;
+        setSlotPositions(newPositions);
 
-          if (spins >= maxSpins) {
-            clearInterval(spinInterval);
-            setIsSpinning(false);
-            
-            const finalSlots = [
-              Math.floor(Math.random() * totalIcons),
-              Math.floor(Math.random() * totalIcons),
-              Math.floor(Math.random() * totalIcons),
-            ];
-            setSlots(finalSlots);
-            
-            const winType = checkWinning(finalSlots);
-            if (winType) {
-              handleWinning(winType);
-            } else {
-              // 处理没有中奖的情况
-              setWinAnimation(null);
-              setWinAmount('');
-            }
-            
-            if (auto && autoSpinCount > 1) {
-              setAutoSpinCount(autoSpinCount - 1);
-              setTimeout(() => handleSpin(true), 1000);
-            } else {
-              setAutoSpinCount(0);
-            }
+        slotRefs.forEach((ref, index) => {
+          if (ref.current) {
+            ref.current.style.transition = `transform ${spinDurations[index]}ms cubic-bezier(0.25, 0.1, 0.25, 1)`;
+            ref.current.style.transform = `translateY(-${newPositions[index] * 100}%)`;
           }
-        }, 100);
+        });
+
+        // 等待最长的旋转完成
+        await new Promise(resolve => setTimeout(resolve, Math.max(...spinDurations)));
+
+        setIsSpinning(false);
+        
+        const winType = checkWinning(newPositions);
+        if (winType) {
+          handleWinning(winType);
+        } else {
+          // 处理没有中奖的情况
+          setWinAnimation(null);
+          setWinAmount('');
+        }
+        
+        if (auto && autoSpinCount > 1) {
+          setAutoSpinCount(autoSpinCount - 1);
+          setTimeout(() => handleSpin(true), 1000);
+        } else {
+          setAutoSpinCount(0);
+        }
       } catch (error) {
         console.error("Error during spin:", error);
         setIsSpinning(false);
@@ -326,21 +322,30 @@ const SlotMachine: React.FC = () => {
         </div>
 
         {/* 老虎机图标 */}
-        <div className="grid grid-cols-3 gap-2 relative">
-          {slots.map((slotIndex, index) => (
+        <div className="grid grid-cols-3 gap-2 relative overflow-hidden">
+          {[0, 1, 2].map((slotIndex) => (
             <div
-              key={index}
+              key={slotIndex}
               className="w-16 h-16 bg-white flex items-center justify-center rounded-md shadow-md overflow-hidden"
             >
-              <Image
-                src={exchangeIcons[slotIndex]}
-                alt="Exchange Icon"
-                width={48}
-                height={48}
-                className={`transition-transform duration-100 ${
-                  isSpinning ? 'animate-spin' : ''
-                }`}
-              />
+              <div
+                ref={slotRefs[slotIndex]}
+                className="flex flex-col items-center transition-transform duration-1000"
+                style={{
+                  transform: `translateY(-${slotPositions[slotIndex] * 100}%)`,
+                }}
+              >
+                {exchangeIcons.map((icon, iconIndex) => (
+                  <div key={iconIndex} className="w-16 h-16 flex items-center justify-center">
+                    <Image
+                      src={icon}
+                      alt="Exchange Icon"
+                      width={48}
+                      height={48}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
@@ -348,9 +353,9 @@ const SlotMachine: React.FC = () => {
         {/* 静音按钮 */}
         <button
           onClick={toggleMute}
-          className="absolute top-2 right-2 text-white text-xl"
+          className="absolute top-2 right-2 text-white text-2xl bg-purple-600 hover:bg-purple-700 rounded-full p-2 transition-colors duration-200 shadow-lg"
         >
-          {isMuted ? '🔇' : '🔊'}
+          {isMuted ? <IoVolumeMute /> : <IoVolumeHigh />}
         </button>
 
         {/* 剩余次数和按钮 */}

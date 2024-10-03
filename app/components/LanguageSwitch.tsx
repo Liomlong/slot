@@ -1,7 +1,7 @@
 // app/components/LanguageSwitch.tsx
 'use client';
 
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { LanguageContext } from '../contexts/LanguageContext';
 
 const languages = [
@@ -18,6 +18,13 @@ const languages = [
 const LanguageSwitch: React.FC = () => {
   const { language, setLanguage } = useContext(LanguageContext);
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    // 在组件加载时，确保选择的语言是有效的
+    if (!languages.some(lang => lang.code === language)) {
+      setLanguage('en'); // 如果当前语言不在支持列表中，默认设置为英语
+    }
+  }, [language, setLanguage]);
 
   const handleLanguageChange = (langCode: string) => {
     setLanguage(langCode);
