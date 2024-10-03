@@ -10,10 +10,10 @@ const Footer: React.FC = () => {
   const { t } = useTranslation();
 
   const navItems = [
-    { name: t('footer.slot'), icon: '🎰', path: '/' },
-    { name: t('footer.rank'), icon: '🏆', path: '/rank' },
-    { name: t('footer.friend'), icon: '👥', path: '/friend' },
-    { name: t('footer.wallet'), icon: '💰', path: '/wallet' },
+    { name: 'footer.slot', icon: '🎰', path: '/' },
+    { name: 'footer.rank', icon: '🏆', path: '/rank' },
+    { name: 'footer.friend', icon: '👥', path: '/friend' },
+    { name: 'footer.wallet', icon: '💰', path: '/wallet' },
   ];
 
   return (
@@ -26,7 +26,7 @@ const Footer: React.FC = () => {
             className="flex flex-col items-center"
           >
             <span className="text-2xl">{item.icon}</span>
-            <span className="text-sm text-gray-700">{item.name}</span>
+            <span className="text-sm text-gray-700">{t(item.name)}</span>
           </button>
         ))}
       </div>
