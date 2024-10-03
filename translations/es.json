@@ -28,5 +28,10 @@
     "reward2": "5 Giros gratis",
     "enjoy": "¡Disfruta tu juego!",
     "startGame": "Comenzar juego"
+  },
+  "invite": {
+    "title": "Invitar amigos",
+    "description": "Invita a tus amigos y obtén recompensas:",
+    "reward": "Por cada amigo invitado, recibirás 🎟️ 100 Puntos y 💰 1 USDT"
   }
 }
