@@ -322,26 +322,27 @@ const SlotMachine: React.FC = () => {
         </div>
 
         {/* 老虎机图标 */}
-        <div className="grid grid-cols-3 gap-2 relative overflow-hidden">
+        <div className="grid grid-cols-3 gap-2 relative overflow-hidden bg-white rounded-lg p-2">
           {[0, 1, 2].map((slotIndex) => (
             <div
               key={slotIndex}
-              className="w-16 h-16 bg-white flex items-center justify-center rounded-md shadow-md overflow-hidden"
+              className="w-20 h-20 bg-gradient-to-b from-gray-200 to-gray-300 rounded-md shadow-inner overflow-hidden"
             >
               <div
                 ref={slotRefs[slotIndex]}
-                className="flex flex-col items-center transition-transform duration-1000"
+                className="flex flex-col items-center transition-transform duration-1000 ease-in-out"
                 style={{
                   transform: `translateY(-${slotPositions[slotIndex] * 100}%)`,
                 }}
               >
                 {exchangeIcons.map((icon, iconIndex) => (
-                  <div key={iconIndex} className="w-16 h-16 flex items-center justify-center">
+                  <div key={iconIndex} className="w-20 h-20 flex items-center justify-center">
                     <Image
                       src={icon}
                       alt="Exchange Icon"
-                      width={48}
-                      height={48}
+                      width={60}
+                      height={60}
+                      className="object-contain"
                     />
                   </div>
                 ))}
