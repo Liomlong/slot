@@ -83,7 +83,12 @@ const SlotMachine: React.FC = () => {
       if (user) {
         setTgId(user.id);
         setUsername(user.username || `${user.first_name} ${user.last_name}`.trim());
-        setUserPhotoUrl(user.photo_url); // 设置用户头像 URL
+        console.log("User photo URL:", user.photo_url);
+        setUserPhotoUrl(user.photo_url);
+        
+        if (!user.photo_url) {
+          fetchUserPhoto(user.id);
+        }
 
         // 获取用户信息
         fetch(`/api/user/info?tgId=${user.id}&username=${encodeURIComponent(user.username || '')}`)
@@ -248,7 +253,19 @@ const SlotMachine: React.FC = () => {
       navigator.clipboard.writeText(inviteLink);
       alert('邀请链接已复制！');
     } else {
-      alert('无法生成邀请链接,请确保已登录。');
+      alert('无法生邀请链接,请确保已登录。');
+    }
+  };
+
+  const fetchUserPhoto = async (userId: number) => {
+    try {
+      const response = await fetch(`/api/user/photo?userId=${userId}`);
+      const data = await response.json();
+      if (data.photoUrl) {
+        setUserPhotoUrl(data.photoUrl);
+      }
+    } catch (error) {
+      console.error("Error fetching user photo:", error);
     }
   };
 
@@ -264,10 +281,14 @@ const SlotMachine: React.FC = () => {
               width={48}
               height={48}
               className="rounded-full"
+              onError={() => {
+                console.error("Failed to load user avatar");
+                setUserPhotoUrl(null);
+              }}
             />
           ) : (
             <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-xl font-bold">
-              ?
+              {username ? username[0].toUpperCase() : '?'}
             </div>
           )}
         </div>
