@@ -93,10 +93,6 @@ const SlotMachine: React.FC = () => {
         console.log("User photo URL:", user.photo_url);
         setUserPhotoUrl(user.photo_url);
         
-        if (!user.photo_url) {
-          fetchUserPhoto(user.id);
-        }
-
         // 获取用户信息
         fetch(`/api/user/info?tgId=${user.id}&username=${encodeURIComponent(user.username || '')}`)
           .then(res => res.json())
