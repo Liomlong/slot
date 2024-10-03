@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 
 const SlotMachine: React.FC = () => {
   const [username, setUsername] = useState<string | null>(null);
@@ -37,6 +38,8 @@ const SlotMachine: React.FC = () => {
   const [winAmount, setWinAmount] = useState<number | null>(null);
 
   const [lastSpinTime, setLastSpinTime] = useState<number | null>(null);
+
+  const [userPhotoUrl, setUserPhotoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     // 在客户端初始化音频
@@ -80,9 +83,10 @@ const SlotMachine: React.FC = () => {
       if (user) {
         setTgId(user.id);
         setUsername(user.username || `${user.first_name} ${user.last_name}`.trim());
+        setUserPhotoUrl(user.photo_url); // 设置用户头像 URL
 
         // 获取用户信息
-        fetch(`/api/user/info?tgId=${user.id}`)
+        fetch(`/api/user/info?tgId=${user.id}&username=${encodeURIComponent(user.username || '')}`)
           .then(res => res.json())
           .then(data => {
             console.log("User info from API:", data);
@@ -253,9 +257,19 @@ const SlotMachine: React.FC = () => {
       {/* 用户信息 */}
       <div className="flex items-center space-x-4 mb-4 bg-white bg-opacity-20 p-3 rounded-lg shadow-lg w-full max-w-sm">
         <div className="flex-shrink-0">
-          <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-xl font-bold">
-            {username ? username[0].toUpperCase() : '?'}
-          </div>
+          {userPhotoUrl ? (
+            <Image
+              src={userPhotoUrl}
+              alt="User Avatar"
+              width={48}
+              height={48}
+              className="rounded-full"
+            />
+          ) : (
+            <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-xl font-bold">
+              ?
+            </div>
+          )}
         </div>
         <div className="flex-grow">
           <p className="text-white font-semibold">{username || 'Loading...'}</p>
