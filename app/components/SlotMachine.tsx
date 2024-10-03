@@ -15,9 +15,13 @@ const SlotMachine: React.FC = () => {
   // 模拟交易所图标（请替换为实际图标路径）
   const exchangeIcons = [
     '/images/binance.png',
-    '/images/huobi.png',
     '/images/okx.png',
-    // 添加更多图标
+    '/images/huobi.png',
+    '/images/tokenpocket.png',
+    '/images/gate.png',
+    '/images/bitget.png',
+    '/images/metamask.png',
+    '/images/btc.png',
   ];
 
   const [slots, setSlots] = useState<number[]>([0, 0, 0]);
@@ -332,10 +336,12 @@ const SlotMachine: React.FC = () => {
               key={index}
               className="w-16 h-16 bg-white flex items-center justify-center rounded-md shadow-md overflow-hidden"
             >
-              <img
+              <Image
                 src={exchangeIcons[slotIndex]}
                 alt="Exchange Icon"
-                className={`w-12 h-12 transition-transform duration-100 ${
+                width={48}
+                height={48}
+                className={`transition-transform duration-100 ${
                   isSpinning ? 'animate-spin' : ''
                 }`}
               />
