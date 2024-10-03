@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextApiRequest, NextApiResponse } from 'next';
 import pool from '@/lib/db';
 
-export default async function handler(req: NextResponse, res: NextResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
-    const { tgId, pointsWon, usdtWon } = await req.json();
+    const { tgId, pointsWon, usdtWon } = req.body;
 
     try {
       const result = await pool.query(
@@ -12,12 +12,12 @@ export default async function handler(req: NextResponse, res: NextResponse) {
       );
 
       const updatedUser = result.rows[0];
-      return NextResponse.json({ newPoints: updatedUser.points, newUsdt: updatedUser.usdt });
+      return res.status(200).json({ newPoints: updatedUser.points, newUsdt: updatedUser.usdt });
     } catch (error) {
       console.error('Error updating user data:', error);
-      return NextResponse.json({ error: 'Failed to update user data' }, { status: 500 });
+      return res.status(500).json({ error: 'Failed to update user data' });
     }
   } else {
-    return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 }

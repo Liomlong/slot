@@ -1,24 +1,23 @@
-import { NextResponse } from 'next/server';
+import { NextApiRequest, NextApiResponse } from 'next';
 import pool from '@/lib/db';
 
-export default async function handler(req: NextResponse, res: NextResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
-    const { searchParams } = new URL(req.url as string);
-    const tgId = searchParams.get('tgId');
+    const { tgId } = req.query;
 
-    if (!tgId) {
-      return NextResponse.json({ error: 'tgId is required' }, { status: 400 });
+    if (!tgId || typeof tgId !== 'string') {
+      return res.status(400).json({ error: 'tgId is required and must be a string' });
     }
 
     try {
       const result = await pool.query('SELECT points, usdt, spins_left, last_spin_time FROM users WHERE tg_id = $1', [tgId]);
 
       if (result.rows.length === 0) {
-        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        return res.status(404).json({ error: 'User not found' });
       }
 
       const user = result.rows[0];
-      return NextResponse.json({
+      return res.status(200).json({
         points: user.points,
         usdt: user.usdt,
         spinsLeft: user.spins_left,
@@ -26,9 +25,9 @@ export default async function handler(req: NextResponse, res: NextResponse) {
       });
     } catch (error) {
       console.error('Error fetching user data:', error);
-      return NextResponse.json({ error: 'Failed to fetch user data' }, { status: 500 });
+      return res.status(500).json({ error: 'Failed to fetch user data' });
     }
   } else {
-    return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 }
