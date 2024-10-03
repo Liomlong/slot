@@ -1,8 +1,7 @@
 {
   "slotMachine": {
     "title": "老虎机",
-    "points": "🎟️ 积分",
-    "usdt": "💰 USDT",
+    "pointsAndUsdt": "🎟️ 积分: {points} | 💰 USDT: {usdt}",
     "spin": "旋转",
     "autoSpin": "自动旋转5次",
     "invite": "邀请好友",

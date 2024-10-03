@@ -1,7 +1,8 @@
 {
   "slotMachine": {
-    "title": "Slot Machine",
-    "points": "Puntos",
+    "title": "Máquina Tragaperras",
+    "points": "🎟️ Puntos",
+    "usdt": "💰 USDT",
     "spin": "Girar",
     "autoSpin": "Giro automático 5 veces",
     "invite": "Invitar amigos",
@@ -9,7 +10,7 @@
     "spinsLeft": "Giros restantes",
     "bigWin": "¡Gran victoria!",
     "smallWin": "¡Pequeña victoria!",
-    "congratulations": "¡Felicidades! ¡Ganaste {amount} puntos!",
+    "congratulations": "¡Felicidades! ¡Ganaste {amount}!",
     "continueGame": "Continuar juego"
   },
   "navbar": {
@@ -24,7 +25,7 @@
   "welcomeModal": {
     "title": "¡Bienvenido nuevo usuario!",
     "subtitle": "¡Felicidades! Has recibido las siguientes recompensas:",
-    "reward1": "1000 Puntos",
+    "reward1": "🎟️ 1000 Puntos",
     "reward2": "5 Giros gratis",
     "enjoy": "¡Disfruta tu juego!",
     "startGame": "Comenzar juego"
