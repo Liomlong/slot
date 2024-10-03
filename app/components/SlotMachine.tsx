@@ -207,7 +207,7 @@ const SlotMachine: React.FC = () => {
         // 计算每个槽位需要旋转的总圈数
         const totalSpins = newPositions.map((newPos, index) => {
           const currentPos = slotPositions[index];
-          return totalIcons * 2 + newPos - currentPos; // 至少旋转2圈，然后到达新位置
+          return totalIcons * 2 + ((newPos - currentPos + totalIcons) % totalIcons);
         });
 
         // 更新槽位位置
@@ -360,16 +360,18 @@ const SlotMachine: React.FC = () => {
                   transform: `translateY(-${slotPositions[slotIndex] * 100}%)`,
                 }}
               >
-                {exchangeIcons.map((icon, iconIndex) => (
-                  <div key={iconIndex} className="w-20 h-20 flex items-center justify-center">
-                    <Image
-                      src={icon}
-                      alt="Exchange Icon"
-                      width={60}
-                      height={60}
-                      className="object-contain"
-                    />
-                  </div>
+                {[...Array(3)].map((_, i) => (
+                  exchangeIcons.map((icon, iconIndex) => (
+                    <div key={`${i}-${iconIndex}`} className="w-20 h-20 flex items-center justify-center">
+                      <Image
+                        src={icon}
+                        alt="Exchange Icon"
+                        width={60}
+                        height={60}
+                        className="object-contain"
+                      />
+                    </div>
+                  ))
                 ))}
               </div>
             </div>
