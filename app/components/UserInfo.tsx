@@ -5,8 +5,12 @@ declare global {
   interface Window {
     Telegram: {
       WebApp: {
-        initData: string;
-        initDataUnsafe: TelegramUser;
+        initDataUnsafe: {
+          user?: TelegramUser;
+        };
+        ready: () => void;
+        isExpanded: boolean;
+        expand: () => void;
       };
     };
   }
@@ -17,37 +21,33 @@ function UserInfo() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        // 获取 Telegram WebApp 提供的用户信息
-        const tgUser = window.Telegram.WebApp.initDataUnsafe;
+    const initTelegramApp = () => {
+      if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.ready();
         
-        // 发送用户信息到后端进行验证
-        const response = await fetch('/api/verify-user', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            initData: window.Telegram.WebApp.initData,
-            user: tgUser 
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error('验证失败');
+        if (!window.Telegram.WebApp.isExpanded) {
+          window.Telegram.WebApp.expand();
         }
 
-        const data = await response.json();
-        setUser(data.user);
-      } catch (error) {
-        console.error('获取用户信息失败:', error);
-      } finally {
-        setLoading(false);
+        const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+        if (tgUser) {
+          setUser(tgUser);
+        } else {
+          console.error('无法获取 Telegram 用户信息');
+        }
+      } else {
+        console.error('Telegram WebApp 不可用');
       }
+      setLoading(false);
     };
 
-    fetchUserInfo();
+    // 确保 Telegram WebApp 已加载
+    if (document.readyState === 'complete') {
+      initTelegramApp();
+    } else {
+      window.addEventListener('load', initTelegramApp);
+      return () => window.removeEventListener('load', initTelegramApp);
+    }
   }, []);
 
   if (loading) {
@@ -61,7 +61,9 @@ function UserInfo() {
   return (
     <div>
       <h2>欢迎, {user.first_name}!</h2>
-      {/* 这里可以显示更多用户信息 */}
+      {user.username && <p>用户名: @{user.username}</p>}
+      {user.language_code && <p>语言: {user.language_code}</p>}
+      {/* 可以根据需要显示更多用户信息 */}
     </div>
   );
 }

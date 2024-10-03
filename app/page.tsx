@@ -6,6 +6,7 @@ import Navbar from './components/Navbar';
 import SlotMachine from './components/SlotMachine';
 import Footer from './components/Footer';
 import WelcomeModal from './components/WelcomeModal';
+import UserInfo from '../components/UserInfo';
 
 const HomePage: React.FC = () => {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -61,6 +62,7 @@ const HomePage: React.FC = () => {
       </main>
       <Footer />
       {showWelcomeModal && <WelcomeModal onClose={handleCloseWelcomeModal} />}
+      <UserInfo />
     </div>
   );
 };
