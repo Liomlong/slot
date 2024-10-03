@@ -126,18 +126,7 @@ const SlotMachine: React.FC = () => {
         setSpinsLeft(data.spinsLeft);
         setLastSpinTime(data.lastSpinTime);
 
-        const newPositions = Array(3).fill(0).map(() => {
-          const random = Math.random();
-          let cumulativeProbability = 0;
-          for (let i = 0; i < exchangeIcons.length; i++) {
-            const iconName = exchangeIcons[i].split('/').pop()?.split('.')[0] || '';
-            cumulativeProbability += getWinProbability(iconName);
-            if (random < cumulativeProbability) {
-              return i;
-            }
-          }
-          return exchangeIcons.length - 1;
-        });
+        const newPositions = Array(3).fill(0).map(() => Math.floor(Math.random() * exchangeIcons.length));
 
         slotRefs.forEach((ref, index) => {
           if (ref.current) {
@@ -145,14 +134,13 @@ const SlotMachine: React.FC = () => {
             ref.current.style.transform = 'translateY(0)';
             void ref.current.offsetHeight; // Force reflow
             ref.current.style.transition = `transform ${2 + index * 0.5}s cubic-bezier(0.25, 0.1, 0.25, 1)`;
-            ref.current.style.transform = `translateY(${-newPositions[index] * 100}%)`;
+            ref.current.style.transform = `translateY(-${newPositions[index] * 100}%)`;
           }
         });
 
-        setFinalPositions(newPositions);
-
         setTimeout(() => {
           setIsSpinning(false);
+          setFinalPositions(newPositions);
           checkWinning(newPositions);
         }, 4000); // Adjust this timeout based on the longest animation duration
 
@@ -173,7 +161,7 @@ const SlotMachine: React.FC = () => {
 
   const handleWinning = async (iconName: string) => {
     const probability = getWinProbability(iconName);
-    const usdtWon = (Math.random() * 0.9 + 0.1) * (1 - probability);
+    const usdtWon = parseFloat(((Math.random() * 0.9 + 0.1) * (1 - probability)).toFixed(2));
     const pointsWon = Math.floor((Math.random() * 901 + 100) * (1 - probability));
 
     try {
@@ -183,8 +171,8 @@ const SlotMachine: React.FC = () => {
         body: JSON.stringify({ tgId, usdtWon, pointsWon }),
       });
       const data = await response.json();
-      setPoints(data.newPoints);
-      setUsdt(data.newUsdt);
+      setPoints(prevPoints => prevPoints + pointsWon);
+      setUsdt(prevUsdt => parseFloat((prevUsdt + usdtWon).toFixed(2)));
       
       setWinAnimation('big');
       setWinAmount(`🎟️ ${pointsWon} ${t('slotMachine.points')} & 💰 ${usdtWon.toFixed(2)} ${t('slotMachine.usdt')}`);
@@ -250,9 +238,9 @@ const SlotMachine: React.FC = () => {
         </div>
       </div>
 
-      {/* 老虎机界面 */}
-      <div className="relative w-full max-w-md p-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-2xl">
-        {/* 声音按钮 - 调小尺寸 */}
+      {/* 老虎机界面 - 调整宽度和内边距 */}
+      <div className="relative w-full max-w-sm mx-auto p-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-2xl">
+        {/* 声音按钮 */}
         <button
           onClick={toggleMute}
           className="absolute top-2 right-2 text-white bg-purple-600 hover:bg-purple-700 rounded-full p-1.5 transition-colors duration-200 shadow-lg z-10 focus:outline-none focus:ring-2 focus:ring-purple-400"
@@ -261,18 +249,24 @@ const SlotMachine: React.FC = () => {
           {isMuted ? <IoVolumeMute className="w-5 h-5" /> : <IoVolumeHigh className="w-5 h-5" />}
         </button>
 
-        {/* 老虎机图标 - 增大尺寸 */}
-        <div className="grid grid-cols-3 gap-4 bg-white rounded-lg p-4 overflow-hidden">
+        {/* 老虎机图标 - 调整大小和间距 */}
+        <div className="grid grid-cols-3 gap-2 bg-white rounded-lg p-2 overflow-hidden">
           {[0, 1, 2].map((slotIndex) => (
-            <div key={slotIndex} className="w-28 h-28 bg-gray-200 rounded-md overflow-hidden">
+            <div key={slotIndex} className="w-24 h-24 bg-gray-200 rounded-md overflow-hidden">
               <div
                 ref={slotRefs[slotIndex]}
                 className="flex flex-col transition-transform duration-1000 ease-in-out"
                 style={{ transform: `translateY(-${finalPositions[slotIndex] * 100}%)` }}
               >
-                {exchangeIcons.map((icon, iconIndex) => (
-                  <div key={iconIndex} className="w-28 h-28 flex items-center justify-center">
-                    <Image src={icon} alt="Exchange Icon" width={80} height={80} className="object-contain" />
+                {[...Array(exchangeIcons.length * 2)].map((_, index) => (
+                  <div key={index} className="w-24 h-24 flex items-center justify-center">
+                    <Image 
+                      src={exchangeIcons[index % exchangeIcons.length]} 
+                      alt="Exchange Icon" 
+                      width={60} 
+                      height={60} 
+                      className="object-contain" 
+                    />
                   </div>
                 ))}
               </div>
@@ -280,11 +274,11 @@ const SlotMachine: React.FC = () => {
           ))}
         </div>
 
-        {/* 旋转按钮 - 增大尺寸 */}
+        {/* 旋转按钮 */}
         <button
           onClick={handleSpin}
           disabled={isSpinning || (!isFreeSpinAvailable() && spinsLeft === 0) || !tgId}
-          className={`mt-6 w-full py-4 rounded-full text-white font-bold text-xl ${
+          className={`mt-4 w-full py-3 rounded-full text-white font-bold text-lg ${
             isSpinning || (!isFreeSpinAvailable() && spinsLeft === 0) || !tgId
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-yellow-500 hover:bg-yellow-600'
@@ -303,13 +297,13 @@ const SlotMachine: React.FC = () => {
           )}
         </button>
 
-        {/* 其他按钮（邀请好友等） - 调整布局 */}
-        <div className="flex space-x-4 w-full mt-4">
+        {/* 其他按钮（邀请好友等） */}
+        <div className="flex space-x-2 w-full mt-2">
           <button
             onClick={handleInvite}
-            className="flex items-center justify-center px-6 py-3 text-base bg-green-600 text-white rounded-full shadow hover:bg-green-700 flex-1"
+            className="flex items-center justify-center px-4 py-2 text-sm bg-green-600 text-white rounded-full shadow hover:bg-green-700 flex-1"
           >
-            <FaUserPlus className="mr-2" />
+            <FaUserPlus className="mr-1" />
             {t('slotMachine.invite')}
           </button>
           <button
@@ -317,11 +311,11 @@ const SlotMachine: React.FC = () => {
               // 处理自动旋转逻辑
             }}
             disabled={isSpinning || spinsLeft < 5}
-            className={`flex items-center justify-center px-6 py-3 text-base rounded-full shadow flex-1 ${
+            className={`flex items-center justify-center px-4 py-2 text-sm rounded-full shadow flex-1 ${
               isSpinning || spinsLeft < 5 ? 'bg-gray-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 text-white'
             }`}
           >
-            <FaRedo className="mr-2" />
+            <FaRedo className="mr-1" />
             {t('slotMachine.autoSpin')}
           </button>
         </div>
