@@ -13,7 +13,9 @@ import ru from '@/translations/ru.json';
 type TranslationType = {
   slotMachine: {
     title: string;
-    pointsAndUsdt: string;
+    points?: string;
+    usdt?: string;
+    pointsAndUsdt?: string;
     spin: string;
     autoSpin: string;
     invite: string;
