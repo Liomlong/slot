@@ -184,7 +184,7 @@ const SlotMachine: React.FC = () => {
   return (
     <div className="flex flex-col items-center p-4 bg-gradient-to-b from-indigo-900 to-purple-900 min-h-screen">
       {/* 用户信息 */}
-      <div className="flex items-center space-x-4 mb-4 bg-white bg-opacity-20 p-3 rounded-lg shadow-lg w-full max-w-sm">
+      <div className="flex items-center space-x-4 mb-4 bg-white bg-opacity-20 p-3 rounded-lg shadow-lg w-full max-w-md">
         <div className="flex-shrink-0">
           {userPhotoUrl ? (
             <Image
@@ -212,28 +212,28 @@ const SlotMachine: React.FC = () => {
       </div>
 
       {/* 老虎机界面 */}
-      <div className="relative w-full max-w-xs p-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-2xl">
-        {/* 声音按钮 */}
+      <div className="relative w-full max-w-md p-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-2xl">
+        {/* 声音按钮 - 调小尺寸 */}
         <button
           onClick={toggleMute}
-          className="absolute top-2 right-2 text-white bg-purple-600 hover:bg-purple-700 rounded-full p-2 transition-colors duration-200 shadow-lg z-10 focus:outline-none focus:ring-2 focus:ring-purple-400"
+          className="absolute top-2 right-2 text-white bg-purple-600 hover:bg-purple-700 rounded-full p-1.5 transition-colors duration-200 shadow-lg z-10 focus:outline-none focus:ring-2 focus:ring-purple-400"
           aria-label={isMuted ? "Unmute" : "Mute"}
         >
-          {isMuted ? <IoVolumeMute className="w-6 h-6" /> : <IoVolumeHigh className="w-6 h-6" />}
+          {isMuted ? <IoVolumeMute className="w-5 h-5" /> : <IoVolumeHigh className="w-5 h-5" />}
         </button>
 
-        {/* 老虎机图标 */}
-        <div className="grid grid-cols-3 gap-2 bg-white rounded-lg p-2 overflow-hidden">
+        {/* 老虎机图标 - 增大尺寸 */}
+        <div className="grid grid-cols-3 gap-4 bg-white rounded-lg p-4 overflow-hidden">
           {[0, 1, 2].map((slotIndex) => (
-            <div key={slotIndex} className="w-20 h-60 bg-gray-200 rounded-md overflow-hidden">
+            <div key={slotIndex} className="w-28 h-28 bg-gray-200 rounded-md overflow-hidden">
               <div
                 ref={slotRefs[slotIndex]}
                 className="flex flex-col transition-transform duration-1000 ease-in-out"
-                style={{ transform: `translateY(0)` }}
+                style={{ transform: `translateY(-${finalPositions[slotIndex] * 100}%)` }}
               >
                 {exchangeIcons.map((icon, iconIndex) => (
-                  <div key={iconIndex} className="w-20 h-20 flex items-center justify-center">
-                    <Image src={icon} alt="Exchange Icon" width={60} height={60} className="object-contain" />
+                  <div key={iconIndex} className="w-28 h-28 flex items-center justify-center">
+                    <Image src={icon} alt="Exchange Icon" width={80} height={80} className="object-contain" />
                   </div>
                 ))}
               </div>
@@ -241,11 +241,11 @@ const SlotMachine: React.FC = () => {
           ))}
         </div>
 
-        {/* 旋转按钮 */}
+        {/* 旋转按钮 - 增大尺寸 */}
         <button
           onClick={handleSpin}
           disabled={isSpinning || (!isFreeSpinAvailable() && spinsLeft === 0) || !tgId}
-          className={`mt-4 w-full py-3 rounded-full text-white font-bold ${
+          className={`mt-6 w-full py-4 rounded-full text-white font-bold text-xl ${
             isSpinning || (!isFreeSpinAvailable() && spinsLeft === 0) || !tgId
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-yellow-500 hover:bg-yellow-600'
@@ -264,11 +264,11 @@ const SlotMachine: React.FC = () => {
           )}
         </button>
 
-        {/* 其他按钮（邀请好友等） */}
-        <div className="flex space-x-2 w-full mt-2">
+        {/* 其他按钮（邀请好友等） - 调整布局 */}
+        <div className="flex space-x-4 w-full mt-4">
           <button
             onClick={handleInvite}
-            className="flex items-center justify-center px-4 py-2 text-sm bg-green-600 text-white rounded-full shadow hover:bg-green-700 flex-1"
+            className="flex items-center justify-center px-6 py-3 text-base bg-green-600 text-white rounded-full shadow hover:bg-green-700 flex-1"
           >
             <FaUserPlus className="mr-2" />
             {t('slotMachine.invite')}
@@ -278,7 +278,7 @@ const SlotMachine: React.FC = () => {
               // 处理自动旋转逻辑
             }}
             disabled={isSpinning || spinsLeft < 5}
-            className={`flex items-center justify-center px-4 py-2 text-sm rounded-full shadow flex-1 ${
+            className={`flex items-center justify-center px-6 py-3 text-base rounded-full shadow flex-1 ${
               isSpinning || spinsLeft < 5 ? 'bg-gray-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 text-white'
             }`}
           >
