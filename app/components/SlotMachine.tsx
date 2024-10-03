@@ -38,7 +38,7 @@ const SlotMachine: React.FC = () => {
   const [autoSpinProgress, setAutoSpinProgress] = useState(0);
 
   const [winAnimation, setWinAnimation] = useState<'big' | 'small' | null>(null);
-  const [winAmount, setWinAmount] = useState<string | null>(null);
+  const [winAmount, setWinAmount] = useState<string>('');
 
   const [lastSpinTime, setLastSpinTime] = useState<number | null>(null);
 
@@ -169,7 +169,7 @@ const SlotMachine: React.FC = () => {
 
       setTimeout(() => {
         setWinAnimation(null);
-        setWinAmount(null);
+        setWinAmount('');
       }, 3000);
     }
   };
@@ -225,7 +225,7 @@ const SlotMachine: React.FC = () => {
             } else {
               // 处理没有中奖的情况
               setWinAnimation(null);
-              setWinAmount(null);
+              setWinAmount('');
             }
             
             if (auto && autoSpinCount > 1) {
@@ -406,7 +406,7 @@ const SlotMachine: React.FC = () => {
             <button
               onClick={() => {
                 setWinAnimation(null);
-                setWinAmount(null);
+                setWinAmount('');
               }}
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             >
