@@ -10,7 +10,8 @@
     "bigWin": "大奖!",
     "smallWin": "小奖!",
     "congratulations": "恭喜您赢得 {amount}!",
-    "continueGame": "继续游戏"
+    "continueGame": "继续游戏",
+    "spinning": "旋转中..."
   },
   "navbar": {
     "title": "Web3Lucky"

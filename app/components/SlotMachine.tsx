@@ -5,6 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useTranslation } from '../hooks/useTranslation';
 import { IoVolumeHigh, IoVolumeMute } from 'react-icons/io5';
+import { FaSpinner, FaUserPlus, FaPlay, FaRedo } from 'react-icons/fa';
 
 const SlotMachine: React.FC = () => {
   const { t } = useTranslation();
@@ -203,17 +204,33 @@ const SlotMachine: React.FC = () => {
         const spinDurations = [2000, 2500, 3000]; // 每个槽的旋转时间
         const newPositions = slotPositions.map(() => Math.floor(Math.random() * totalIcons));
 
-        setSlotPositions(newPositions);
+        // 计算每个槽位需要旋转的总圈数
+        const totalSpins = newPositions.map((newPos, index) => {
+          const currentPos = slotPositions[index];
+          return totalIcons * 2 + newPos - currentPos; // 至少旋转2圈，然后到达新位置
+        });
 
+        // 更新槽位位置
         slotRefs.forEach((ref, index) => {
           if (ref.current) {
             ref.current.style.transition = `transform ${spinDurations[index]}ms cubic-bezier(0.25, 0.1, 0.25, 1)`;
-            ref.current.style.transform = `translateY(-${newPositions[index] * 100}%)`;
+            ref.current.style.transform = `translateY(-${totalSpins[index] * 100}%)`;
           }
         });
 
         // 等待最长的旋转完成
         await new Promise(resolve => setTimeout(resolve, Math.max(...spinDurations)));
+
+        // 设置最终位置
+        setSlotPositions(newPositions);
+
+        // 重置槽位样式，使其立即跳转到最终位置
+        slotRefs.forEach((ref, index) => {
+          if (ref.current) {
+            ref.current.style.transition = 'none';
+            ref.current.style.transform = `translateY(-${newPositions[index] * 100}%)`;
+          }
+        });
 
         setIsSpinning(false);
         
@@ -302,6 +319,14 @@ const SlotMachine: React.FC = () => {
 
       {/* 老虎机界面 */}
       <div className="relative w-full max-w-xs p-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-2xl">
+        {/* 静音按钮 - 移动到左上角并减小大小 */}
+        <button
+          onClick={toggleMute}
+          className="absolute top-2 left-2 text-white text-lg bg-purple-600 hover:bg-purple-700 rounded-full p-1.5 transition-colors duration-200 shadow-lg"
+        >
+          {isMuted ? <IoVolumeMute /> : <IoVolumeHigh />}
+        </button>
+
         {/* 拉杆 */}
         <div className="absolute right-[-40px] top-1/2 transform -translate-y-1/2 h-36">
           <div className="relative h-full w-12">
@@ -351,46 +376,53 @@ const SlotMachine: React.FC = () => {
           ))}
         </div>
 
-        {/* 静音按钮 */}
-        <button
-          onClick={toggleMute}
-          className="absolute top-2 right-2 text-white text-2xl bg-purple-600 hover:bg-purple-700 rounded-full p-2 transition-colors duration-200 shadow-lg"
-        >
-          {isMuted ? <IoVolumeMute /> : <IoVolumeHigh />}
-        </button>
-
         {/* 剩余次数和按钮 */}
         <div className="flex flex-col items-center mt-4">
-          <span className="text-white text-sm">
+          <span className="text-white text-sm mb-2">
             {isFreeSpinAvailable() ? t('slotMachine.freeSpinAvailable') : `${t('slotMachine.spinsLeft')}: ${spinsLeft}`}
           </span>
+          
+          {/* Spin 按钮 */}
           <button
             onClick={() => handleSpin()}
             disabled={isSpinning || (!isFreeSpinAvailable() && spinsLeft === 0) || !tgId}
-            className={`mt-2 px-4 py-2 text-sm rounded-full shadow ${
-              isSpinning || (!isFreeSpinAvailable() && spinsLeft === 0) || !tgId ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700 text-white'
+            className={`flex items-center justify-center px-6 py-3 text-lg font-bold rounded-full shadow-lg mb-2 w-full ${
+              isSpinning || (!isFreeSpinAvailable() && spinsLeft === 0) || !tgId
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-yellow-500 hover:bg-yellow-600 text-white'
             }`}
           >
-            {isSpinning ? '旋转中...' : t('slotMachine.spin')}
+            {isSpinning ? (
+              <FaSpinner className="animate-spin mr-2" />
+            ) : (
+              <FaPlay className="mr-2" />
+            )}
+            {isSpinning ? t('slotMachine.spinning') : t('slotMachine.spin')}
           </button>
-          <button
-            onClick={handleInvite}
-            className="mt-2 px-4 py-2 text-sm bg-green-600 text-white rounded-full shadow hover:bg-green-700"
-          >
-            {t('slotMachine.invite')}
-          </button>
-          <button
-            onClick={() => {
-              setAutoSpinCount(5);
-              handleSpin(true);
-            }}
-            disabled={isSpinning || spinsLeft < 5}
-            className={`mt-2 px-4 py-2 text-sm rounded-full shadow ${
-              isSpinning || spinsLeft < 5 ? 'bg-gray-400' : 'bg-purple-600 hover:bg-purple-700 text-white'
-            }`}
-          >
-            {t('slotMachine.autoSpin')}
-          </button>
+          
+          {/* 其他按钮 */}
+          <div className="flex space-x-2 w-full">
+            <button
+              onClick={handleInvite}
+              className="flex items-center justify-center px-4 py-2 text-sm bg-green-600 text-white rounded-full shadow hover:bg-green-700 flex-1"
+            >
+              <FaUserPlus className="mr-2" />
+              {t('slotMachine.invite')}
+            </button>
+            <button
+              onClick={() => {
+                setAutoSpinCount(5);
+                handleSpin(true);
+              }}
+              disabled={isSpinning || spinsLeft < 5}
+              className={`flex items-center justify-center px-4 py-2 text-sm rounded-full shadow flex-1 ${
+                isSpinning || spinsLeft < 5 ? 'bg-gray-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 text-white'
+              }`}
+            >
+              <FaRedo className="mr-2" />
+              {t('slotMachine.autoSpin')}
+            </button>
+          </div>
         </div>
 
         {autoSpinCount > 0 && (
