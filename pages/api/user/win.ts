@@ -1,28 +1,23 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { PrismaClient } from '@prisma/client';
+import { NextResponse } from 'next/server';
+import pool from '@/lib/db';
 
-const prisma = new PrismaClient();
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextResponse, res: NextResponse) {
   if (req.method === 'POST') {
-    const { tgId, pointsWon, usdtWon } = req.body;
+    const { tgId, pointsWon, usdtWon } = await req.json();
 
     try {
-      const updatedUser = await prisma.user.update({
-        where: { tgId: tgId },
-        data: {
-          points: { increment: pointsWon },
-          usdt: { increment: usdtWon },
-        },
-      });
+      const result = await pool.query(
+        'UPDATE users SET points = points + $1, usdt = usdt + $2 WHERE tg_id = $3 RETURNING points, usdt',
+        [pointsWon, usdtWon, tgId]
+      );
 
-      res.status(200).json({ newPoints: updatedUser.points, newUsdt: updatedUser.usdt });
+      const updatedUser = result.rows[0];
+      return NextResponse.json({ newPoints: updatedUser.points, newUsdt: updatedUser.usdt });
     } catch (error) {
       console.error('Error updating user data:', error);
-      res.status(500).json({ error: 'Failed to update user data' });
+      return NextResponse.json({ error: 'Failed to update user data' }, { status: 500 });
     }
   } else {
-    res.setHeader('Allow', ['POST']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+    return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
   }
 }

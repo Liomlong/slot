@@ -1,37 +1,34 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { PrismaClient } from '@prisma/client';
+import { NextResponse } from 'next/server';
+import pool from '@/lib/db';
 
-const prisma = new PrismaClient();
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextResponse, res: NextResponse) {
   if (req.method === 'GET') {
-    const { tgId } = req.query;
+    const { searchParams } = new URL(req.url as string);
+    const tgId = searchParams.get('tgId');
 
     if (!tgId) {
-      return res.status(400).json({ error: 'tgId is required' });
+      return NextResponse.json({ error: 'tgId is required' }, { status: 400 });
     }
 
     try {
-      const user = await prisma.user.findUnique({
-        where: { tgId: String(tgId) },
-      });
+      const result = await pool.query('SELECT points, usdt, spins_left, last_spin_time FROM users WHERE tg_id = $1', [tgId]);
 
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+      if (result.rows.length === 0) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
       }
 
-      res.status(200).json({
+      const user = result.rows[0];
+      return NextResponse.json({
         points: user.points,
         usdt: user.usdt,
-        spinsLeft: user.spinsLeft,
-        lastSpinTime: user.lastSpinTime,
+        spinsLeft: user.spins_left,
+        lastSpinTime: user.last_spin_time,
       });
     } catch (error) {
       console.error('Error fetching user data:', error);
-      res.status(500).json({ error: 'Failed to fetch user data' });
+      return NextResponse.json({ error: 'Failed to fetch user data' }, { status: 500 });
     }
   } else {
-    res.setHeader('Allow', ['GET']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+    return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
   }
 }

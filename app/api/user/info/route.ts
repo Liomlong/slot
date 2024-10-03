@@ -5,7 +5,7 @@ export async function GET(request: Request) {
   console.log("Received request for user info");
   const { searchParams } = new URL(request.url);
   const tgId = searchParams.get('tgId');
-  const username = searchParams.get('username'); // 新增：从请求中获取 username
+  const username = searchParams.get('username');
   console.log("tgId:", tgId, "username:", username);
 
   if (!tgId) {
