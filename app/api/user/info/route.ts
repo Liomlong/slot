@@ -20,7 +20,7 @@ export async function GET(request: Request) {
     if (res.rows.length === 0) {
       // 如果用户不存在，创建新用户
       const newUser = await pool.query(
-        'INSERT INTO users (tg_id, points, spins_left, username) VALUES ($1, 0, 3, $2) RETURNING points, usdt, spins_left, last_spin_time, username',
+        'INSERT INTO users (tg_id, points, usdt, spins_left, username) VALUES ($1, 0, 0, 3, $2) RETURNING points, usdt, spins_left, last_spin_time, username',
         [tgId, username]
       );
       console.log("New user created:", newUser.rows[0]);
