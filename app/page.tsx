@@ -6,11 +6,14 @@ import Navbar from './components/Navbar';
 import SlotMachine from './components/SlotMachine';
 import Footer from './components/Footer';
 import WelcomeModal from './components/WelcomeModal';
+import { useTranslation } from './hooks/useTranslation';
 
 const HomePage: React.FC = () => {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [isTelegramReady, setIsTelegramReady] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const [isGuestMode, setIsGuestMode] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const checkTelegramWebApp = () => {
@@ -32,7 +35,6 @@ const HomePage: React.FC = () => {
   }, [retryCount]);
 
   useEffect(() => {
-    // 检查是否是新用户，如果是则显示欢迎弹窗
     const isNewUser = localStorage.getItem('isNewUser') !== 'false';
     if (isNewUser) {
       setShowWelcomeModal(true);
@@ -45,26 +47,37 @@ const HomePage: React.FC = () => {
   };
 
   const handleRelogin = () => {
-    // 重新加载页面以重新初始化 Telegram WebApp
     window.location.reload();
+  };
+
+  const handleGuestLogin = () => {
+    setIsGuestMode(true);
   };
 
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-grow">
-        {isTelegramReady ? (
-          <SlotMachine />
+        {isTelegramReady || isGuestMode ? (
+          <SlotMachine isGuestMode={isGuestMode} />
         ) : (
           <div className="flex flex-col items-center justify-center h-full">
-            <p className="mb-4">Loading...</p>
+            <p className="mb-4">{t('loading')}</p>
             {retryCount >= 3 && (
-              <button
-                onClick={handleRelogin}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                重新登录
-              </button>
+              <>
+                <button
+                  onClick={handleRelogin}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 mb-2"
+                >
+                  {t('relogin')}
+                </button>
+                <button
+                  onClick={handleGuestLogin}
+                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                >
+                  {t('guestLogin')}
+                </button>
+              </>
             )}
           </div>
         )}

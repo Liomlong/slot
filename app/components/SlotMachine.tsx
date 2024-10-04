@@ -2,27 +2,35 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
+import NextImage from 'next/image';
 import { useTranslation } from '../hooks/useTranslation';
 import { IoVolumeHigh, IoVolumeMute } from 'react-icons/io5';
 import { FaSpinner, FaUserPlus, FaPlay, FaRedo } from 'react-icons/fa';
 
-const SlotMachine: React.FC = () => {
+interface SlotMachineProps {
+  isGuestMode: boolean;
+}
+
+const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   const { t } = useTranslation();
   const [username, setUsername] = useState<string | null>(null);
   const [points, setPoints] = useState(0);
   const [usdt, setUsdt] = useState(0);
-  const [spinsLeft, setSpinsLeft] = useState(3);
+  const [spinsLeft, setSpinsLeft] = useState(isGuestMode ? Infinity : 3);
 
   const exchangeIcons = [
     '/images/btc.png',
     '/images/binance.png',
     '/images/okx.png',
     '/images/huobi.png',
-    '/images/bitget.png',
-    '/images/metamask.png',
-    '/images/gate.png',
-    '/images/tokenpocket.png',
+    '/images/btc.png',
+    '/images/binance.png',
+    '/images/okx.png',
+    '/images/huobi.png',
+    '/images/btc.png',
+    '/images/binance.png',
+    '/images/okx.png',
+    '/images/huobi.png',
   ];
 
   const [isSpinning, setIsSpinning] = useState(false);
@@ -38,46 +46,58 @@ const SlotMachine: React.FC = () => {
   const [userPhotoUrl, setUserPhotoUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    const initTelegramApp = () => {
-      const tg = (window as any).Telegram?.WebApp;
-      if (tg) {
-        console.log("Telegram WebApp found:", tg);
-        console.log("InitData:", tg.initData);
-        console.log("InitDataUnsafe:", tg.initDataUnsafe);
-        const user = tg.initDataUnsafe?.user;
-        console.log("Telegram user:", user);
-        if (user) {
-          setTgId(user.id);
-          setUsername(user.username || `${user.first_name} ${user.last_name}`.trim());
-          setUserPhotoUrl(user.photo_url);
-          
-          // 获取用户信息
-          fetch(`/api/user/info?tgId=${user.id}&username=${encodeURIComponent(user.username || '')}`)
-            .then(res => res.json())
-            .then(data => {
-              console.log("User info from API:", data);
-              setPoints(data.points);
-              setUsdt(data.usdt);
-              setSpinsLeft(data.spinsLeft);
-              setLastSpinTime(data.lastSpinTime);
-              if (data.username) {
-                setUsername(data.username);
-              }
-            })
-            .catch(error => console.error('Error fetching user info:', error));
+    if (!isGuestMode) {
+      const initTelegramApp = () => {
+        const tg = (window as any).Telegram?.WebApp;
+        if (tg) {
+          console.log("Telegram WebApp found:", tg);
+          console.log("InitData:", tg.initData);
+          console.log("InitDataUnsafe:", tg.initDataUnsafe);
+          const user = tg.initDataUnsafe?.user;
+          console.log("Telegram user:", user);
+          if (user) {
+            setTgId(user.id);
+            setUsername(user.username || `${user.first_name} ${user.last_name}`.trim());
+            setUserPhotoUrl(user.photo_url);
+            
+            // 获取用户信息
+            fetch(`/api/user/info?tgId=${user.id}&username=${encodeURIComponent(user.username || '')}`)
+              .then(res => res.json())
+              .then(data => {
+                console.log("User info from API:", data);
+                setPoints(data.points);
+                setUsdt(data.usdt);
+                setSpinsLeft(data.spinsLeft);
+                setLastSpinTime(data.lastSpinTime);
+                if (data.username) {
+                  setUsername(data.username);
+                }
+              })
+              .catch(error => console.error('Error fetching user info:', error));
+          } else {
+            console.log("No user found in Telegram WebApp");
+          }
         } else {
-          console.log("No user found in Telegram WebApp");
+          console.log("Telegram WebApp not available");
         }
-      } else {
-        console.log("Telegram WebApp not available");
-      }
-    };
-
-    initTelegramApp();
-  }, []);
+      };
+      initTelegramApp();
+    } else {
+      setUsername('游客');
+      setPoints(0);
+      setUsdt(0);
+    }
+  }, [isGuestMode]);
 
   useEffect(() => {
     setAudio(new Audio('/sounds/spin.mp3'));
+  }, []);
+
+  useEffect(() => {
+    exchangeIcons.forEach((icon) => {
+      const img = new window.Image();
+      img.src = icon;
+    });
   }, []);
 
   const toggleMute = () => {
@@ -94,60 +114,61 @@ const SlotMachine: React.FC = () => {
     return hoursSinceLastSpin >= 24;
   };
 
-  const getWinProbability = (iconName: string): number => {
-    const probabilities: { [key: string]: number } = {
-      'btc': 0.01,
-      'binance': 0.02,
-      'okx': 0.03,
-      'huobi': 0.04,
-      'bitget': 0.05,
-      'metamask': 0.05,
-      'gate': 0.05,
-      'tokenpocket': 0.05,
-    };
-    return probabilities[iconName] || 0;
+  const spinSlot = (index: number, finalPosition: number, duration: number) => {
+    const ref = slotRefs[index];
+    if (ref.current) {
+      ref.current.style.transition = 'none';
+      ref.current.style.transform = 'translateY(0)';
+      ref.current.offsetHeight; // 触发重排
+      ref.current.style.transition = `transform ${duration}s cubic-bezier(0.25, 0.1, 0.25, 1)`;
+      ref.current.style.transform = `translateY(-${(finalPosition + 8) * 100}px)`;
+      
+      setTimeout(() => {
+        if (ref.current) {
+          ref.current.style.transition = 'none';
+          ref.current.style.transform = `translateY(-${finalPosition * 100}px)`;
+        }
+      }, duration * 1000);
+    }
   };
 
   const handleSpin = async () => {
-    if ((spinsLeft > 0 || isFreeSpinAvailable()) && !isSpinning && tgId) {
+    if (isGuestMode || (spinsLeft > 0 || isFreeSpinAvailable()) && !isSpinning && tgId) {
       setIsSpinning(true);
       if (!isMuted && audio) {
         audio.play();
       }
 
-      try {
-        const response = await fetch('/api/user/spin', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tgId, isFreeSpin: isFreeSpinAvailable() }),
-        });
-        if (!response.ok) throw new Error('Spin request failed');
-        const data = await response.json();
-        setSpinsLeft(data.spinsLeft);
-        setLastSpinTime(data.lastSpinTime);
+      const newPositions = Array(3).fill(0).map(() => Math.floor(Math.random() * 4));
+      
+      // 同时开始所有槽位的旋转
+      spinSlot(0, newPositions[0], 1.5); // 第一个槽位旋转1.5秒
+      spinSlot(1, newPositions[1], 2); // 第二个槽位旋转2秒
+      spinSlot(2, newPositions[2], 2.5); // 第三个槽位旋转2.5秒
 
-        const newPositions = Array(3).fill(0).map(() => Math.floor(Math.random() * exchangeIcons.length));
-
-        slotRefs.forEach((ref, index) => {
-          if (ref.current) {
-            ref.current.style.transition = 'none';
-            ref.current.style.transform = 'translateY(0)';
-            void ref.current.offsetHeight; // Force reflow
-            ref.current.style.transition = `transform ${2 + index * 0.5}s cubic-bezier(0.25, 0.1, 0.25, 1)`;
-            ref.current.style.transform = `translateY(-${newPositions[index] * 100}%)`;
-          }
-        });
-
-        setTimeout(() => {
-          setIsSpinning(false);
-          setFinalPositions(newPositions);
-          checkWinning(newPositions);
-        }, 4000); // Adjust this timeout based on the longest animation duration
-
-      } catch (error) {
-        console.error("Error during spin:", error);
+      setTimeout(() => {
         setIsSpinning(false);
-        alert("旋转失败，请稍后再试");
+        setFinalPositions(newPositions);
+        if (!isGuestMode) {
+          checkWinning(newPositions);
+        }
+      }, 2500); // 等待最长的旋转时间（2.5秒）后结束
+
+      if (!isGuestMode) {
+        try {
+          const response = await fetch('/api/user/spin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tgId }),
+          });
+          if (!response.ok) throw new Error('Spin request failed');
+          const data = await response.json();
+          setSpinsLeft(data.spinsLeft);
+          setLastSpinTime(data.lastSpinTime);
+        } catch (error) {
+          console.error("Error during spin:", error);
+          alert(t('spinError'));
+        }
       }
     }
   };
@@ -160,29 +181,37 @@ const SlotMachine: React.FC = () => {
   };
 
   const handleWinning = async (iconName: string) => {
-    const probability = getWinProbability(iconName);
-    const usdtWon = parseFloat(((Math.random() * 0.9 + 0.1) * (1 - probability)).toFixed(2));
-    const pointsWon = Math.floor((Math.random() * 901 + 100) * (1 - probability));
-
-    try {
-      const response = await fetch('/api/user/win', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tgId, usdtWon, pointsWon }),
-      });
-      const data = await response.json();
-      setPoints(prevPoints => prevPoints + pointsWon);
-      setUsdt(prevUsdt => parseFloat((prevUsdt + usdtWon).toFixed(2)));
-      
+    if (isGuestMode) {
       setWinAnimation('big');
-      setWinAmount(`🎟️ ${pointsWon} ${t('slotMachine.points')} & 💰 ${usdtWon.toFixed(2)} ${t('slotMachine.usdt')}`);
-
+      setWinAmount(t('guestModeWin'));
       setTimeout(() => {
         setWinAnimation(null);
         setWinAmount('');
       }, 3000);
-    } catch (error) {
-      console.error("Error updating win:", error);
+    } else {
+      const usdtWon = parseFloat((Math.random() * 10).toFixed(2));
+      const pointsWon = Math.floor(Math.random() * 100);
+
+      try {
+        const response = await fetch('/api/user/win', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tgId, usdtWon, pointsWon }),
+        });
+        const data = await response.json();
+        setPoints(prevPoints => prevPoints + pointsWon);
+        setUsdt(prevUsdt => parseFloat((prevUsdt + usdtWon).toFixed(2)));
+        
+        setWinAnimation('big');
+        setWinAmount(`🎟️ ${pointsWon} ${t('slotMachine.points')} & 💰 ${usdtWon.toFixed(2)} ${t('slotMachine.usdt')}`);
+
+        setTimeout(() => {
+          setWinAnimation(null);
+          setWinAmount('');
+        }, 3000);
+      } catch (error) {
+        console.error("Error updating win:", error);
+      }
     }
   };
 
@@ -196,45 +225,46 @@ const SlotMachine: React.FC = () => {
     }
   };
 
-  const fetchUserPhoto = async (userId: number) => {
-    try {
-      const response = await fetch(`/api/user/photo?userId=${userId}`);
-      const data = await response.json();
-      if (data.photoUrl) {
-        setUserPhotoUrl(data.photoUrl);
-      }
-    } catch (error) {
-      console.error("Error fetching user photo:", error);
-    }
-  };
-
   return (
     <div className="flex flex-col items-center p-4 bg-gradient-to-b from-indigo-900 to-purple-900 min-h-screen">
       {/* 用户信息 */}
       <div className="flex items-center space-x-4 mb-4 bg-white bg-opacity-20 p-3 rounded-lg shadow-lg w-full max-w-md">
         <div className="flex-shrink-0">
-          {userPhotoUrl ? (
-            <Image
-              src={userPhotoUrl}
-              alt="User Avatar"
-              width={48}
-              height={48}
-              className="rounded-full"
-              onError={() => {
-                console.error("Failed to load user avatar");
-                setUserPhotoUrl(null);
-              }}
-            />
-          ) : (
+          {isGuestMode ? (
             <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-xl font-bold">
-              {username ? username[0].toUpperCase() : '?'}
+              G
             </div>
+          ) : (
+            userPhotoUrl ? (
+              <NextImage
+                src={userPhotoUrl}
+                alt="User Avatar"
+                width={48}
+                height={48}
+                className="rounded-full"
+                onError={() => {
+                  console.error("Failed to load user avatar");
+                  setUserPhotoUrl(null);
+                }}
+              />
+            ) : (
+              <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-xl font-bold">
+                {username ? username[0].toUpperCase() : '?'}
+              </div>
+            )
           )}
         </div>
         <div className="flex-grow">
-          <p className="text-white font-semibold">{username || 'Loading...'}</p>
-          <p className="text-sm text-gray-300">{t('slotMachine.points')}: {points}</p>
-          <p className="text-sm text-gray-300">{t('slotMachine.usdt')}: {usdt}</p>
+          <p className="text-white font-semibold">{username || t('loading')}</p>
+          {!isGuestMode && (
+            <>
+              <p className="text-sm text-gray-300">{t('slotMachine.points')}: {points}</p>
+              <p className="text-sm text-gray-300">{t('slotMachine.usdt')}: {usdt}</p>
+            </>
+          )}
+          {isGuestMode && (
+            <p className="text-sm text-gray-300">{t('guestModeNotice')}</p>
+          )}
         </div>
       </div>
 
@@ -249,19 +279,18 @@ const SlotMachine: React.FC = () => {
           {isMuted ? <IoVolumeMute className="w-5 h-5" /> : <IoVolumeHigh className="w-5 h-5" />}
         </button>
 
-        {/* 老虎机图标 - 调整大小和间距 */}
+        {/* 老虎机图标 */}
         <div className="grid grid-cols-3 gap-2 bg-white rounded-lg p-2 overflow-hidden">
           {[0, 1, 2].map((slotIndex) => (
             <div key={slotIndex} className="w-24 h-24 bg-gray-200 rounded-md overflow-hidden">
               <div
                 ref={slotRefs[slotIndex]}
-                className="flex flex-col transition-transform duration-1000 ease-in-out"
-                style={{ transform: `translateY(-${finalPositions[slotIndex] * 100}%)` }}
+                className="flex flex-col slot-column"
               >
-                {[...Array(exchangeIcons.length * 2)].map((_, index) => (
+                {[...Array(12)].map((_, index) => (
                   <div key={index} className="w-24 h-24 flex items-center justify-center">
-                    <Image 
-                      src={exchangeIcons[index % exchangeIcons.length]} 
+                    <NextImage 
+                      src={exchangeIcons[index % 4]} 
                       alt="Exchange Icon" 
                       width={60} 
                       height={60} 
@@ -277,9 +306,9 @@ const SlotMachine: React.FC = () => {
         {/* 旋转按钮 */}
         <button
           onClick={handleSpin}
-          disabled={isSpinning || (!isFreeSpinAvailable() && spinsLeft === 0) || !tgId}
+          disabled={isSpinning || (!isGuestMode && !isFreeSpinAvailable() && spinsLeft === 0)}
           className={`mt-4 w-full py-3 rounded-full text-white font-bold text-lg ${
-            isSpinning || (!isFreeSpinAvailable() && spinsLeft === 0) || !tgId
+            isSpinning || (!isGuestMode && !isFreeSpinAvailable() && spinsLeft === 0)
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-yellow-500 hover:bg-yellow-600'
           }`}
@@ -321,7 +350,7 @@ const SlotMachine: React.FC = () => {
         </div>
       </div>
 
-      {/* 中奖弹窗 */}
+      {/* 中奖弹 */}
       {winAnimation && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-xl text-center">
