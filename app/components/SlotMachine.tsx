@@ -212,9 +212,14 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tgId, usdtWon, pointsWon }),
         });
+        if (!response.ok) {
+          throw new Error('Failed to update user data');
+        }
         const data = await response.json();
-        setPoints(prevPoints => prevPoints + pointsWon);
-        setUsdt(prevUsdt => parseFloat((prevUsdt + usdtWon).toFixed(2)));
+        
+        // 使用服务器返回的新值更新状态
+        setPoints(data.newPoints);
+        setUsdt(data.newUsdt);
         
         setWinAnimation('big');
         setWinAmount(`🎟️ ${pointsWon} ${t('slotMachine.points')} & 💰 ${usdtWon.toFixed(2)} ${t('slotMachine.usdt')}`);
@@ -225,6 +230,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
         }, 3000);
       } catch (error) {
         console.error("Error updating win:", error);
+        alert(t('updateWinError'));
       }
     }
   };

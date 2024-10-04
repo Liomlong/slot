@@ -49,5 +49,6 @@
   "guestLogin": "游客登录",
   "guestModeNotice": "游客模式：不记录分数",
   "guestModeWin": "恭喜！在游客模式中获胜（不记录分数）",
-  "spinError": "旋转失败，请稍后再试"
+  "spinError": "旋转失败，请稍后再试",
+  "updateWinError": "更新获胜数据失败，请稍后再试"
 }
