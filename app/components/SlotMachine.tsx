@@ -194,10 +194,6 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
         'binance': { probability: 0.02, maxUsdt: 0.9, maxPoints: 900 },
         'okx': { probability: 0.03, maxUsdt: 0.8, maxPoints: 800 },
         'huobi': { probability: 0.04, maxUsdt: 0.7, maxPoints: 700 },
-        'bitget': { probability: 0.05, maxUsdt: 0.6, maxPoints: 600 },
-        'metamask': { probability: 0.05, maxUsdt: 0.5, maxPoints: 500 },
-        'gate': { probability: 0.05, maxUsdt: 0.4, maxPoints: 400 },
-        'tokenpocket': { probability: 0.05, maxUsdt: 0.3, maxPoints: 300 },
       };
 
       const reward = rewardProbabilities[iconName as keyof typeof rewardProbabilities] || 
@@ -217,7 +213,6 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
         }
         const data = await response.json();
         
-        // 使用服务器返回的新值更新状态
         setPoints(data.newPoints);
         setUsdt(data.newUsdt);
         
