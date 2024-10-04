@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { connectToDatabase } from '../../lib/mongodb';
+import pool from '@/lib/db';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -13,28 +13,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { db } = await connectToDatabase();
-    const usersCollection = db.collection('users');
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
 
-    const result = await usersCollection.findOneAndUpdate(
-      { tgId: tgId },
-      { 
-        $inc: { 
-          points: pointsWon,
-          usdt: usdtWon
-        } 
-      },
-      { returnDocument: 'after' }
-    );
+      const result = await client.query(
+        'UPDATE users SET points = points + $1, usdt = usdt + $2 WHERE tg_id = $3 RETURNING points, usdt',
+        [pointsWon, usdtWon, tgId]
+      );
 
-    if (!result.value) {
-      return res.status(404).json({ message: 'User not found' });
+      if (result.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      await client.query('COMMIT');
+
+      const updatedUser = result.rows[0];
+      res.status(200).json({ 
+        newPoints: updatedUser.points,
+        newUsdt: updatedUser.usdt
+      });
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
     }
-
-    res.status(200).json({ 
-      newPoints: result.value.points,
-      newUsdt: result.value.usdt
-    });
   } catch (error) {
     console.error('Error updating user data:', error);
     res.status(500).json({ message: 'Internal server error' });
