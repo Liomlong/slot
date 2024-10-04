@@ -1,4 +1,3 @@
-// app/components/SlotMachine.tsx
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -142,9 +141,9 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
       const newPositions = Array(3).fill(0).map(() => Math.floor(Math.random() * 4));
       
       // 同时开始所有槽位的旋转
-      spinSlot(0, newPositions[0], 1.5); // 第一个槽位旋转1.5秒
-      spinSlot(1, newPositions[1], 2); // 第二个槽位旋转2秒
-      spinSlot(2, newPositions[2], 2.5); // 第三个槽位旋转2.5秒
+      spinSlot(0, newPositions[0], 1.5);
+      spinSlot(1, newPositions[1], 2);
+      spinSlot(2, newPositions[2], 2.5);
 
       setTimeout(() => {
         setIsSpinning(false);
@@ -152,7 +151,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
         if (!isGuestMode) {
           checkWinning(newPositions);
         }
-      }, 2500); // 等待最长的旋转时间（2.5秒）后结束
+      }, 2500);
 
       if (!isGuestMode) {
         try {
@@ -189,8 +188,23 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
         setWinAmount('');
       }, 3000);
     } else {
-      const usdtWon = parseFloat((Math.random() * 10).toFixed(2));
-      const pointsWon = Math.floor(Math.random() * 100);
+      // 根据图标名称设置不同的奖励概率和金额
+      const rewardProbabilities = {
+        'btc': { probability: 0.01, maxUsdt: 1, maxPoints: 1000 },
+        'binance': { probability: 0.02, maxUsdt: 0.9, maxPoints: 900 },
+        'okx': { probability: 0.03, maxUsdt: 0.8, maxPoints: 800 },
+        'huobi': { probability: 0.04, maxUsdt: 0.7, maxPoints: 700 },
+        'bitget': { probability: 0.05, maxUsdt: 0.6, maxPoints: 600 },
+        'metamask': { probability: 0.05, maxUsdt: 0.5, maxPoints: 500 },
+        'gate': { probability: 0.05, maxUsdt: 0.4, maxPoints: 400 },
+        'tokenpocket': { probability: 0.05, maxUsdt: 0.3, maxPoints: 300 },
+      };
+
+      const reward = rewardProbabilities[iconName as keyof typeof rewardProbabilities] || 
+                     { probability: 0.05, maxUsdt: 0.1, maxPoints: 100 };
+
+      const usdtWon = parseFloat((Math.random() * (reward.maxUsdt - 0.1) + 0.1).toFixed(2));
+      const pointsWon = Math.floor(Math.random() * (reward.maxPoints - 100) + 100);
 
       try {
         const response = await fetch('/api/user/win', {
@@ -221,7 +235,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
       navigator.clipboard.writeText(inviteLink);
       alert('邀请链接已复制！');
     } else {
-      alert('无法生邀请链接,请确保已登录。');
+      alert('无法生成邀请链接，请确保已登录。');
     }
   };
 
@@ -268,7 +282,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
         </div>
       </div>
 
-      {/* 老虎机界面 - 调整宽度和内边距 */}
+      {/* 老虎机界面 */}
       <div className="relative w-full max-w-sm mx-auto p-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-2xl">
         {/* 声音按钮 */}
         <button
@@ -350,7 +364,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
         </div>
       </div>
 
-      {/* 中奖弹 */}
+      {/* 中奖弹窗 */}
       {winAnimation && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-xl text-center">
