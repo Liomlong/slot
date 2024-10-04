@@ -22,14 +22,10 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
     '/images/binance.png',
     '/images/okx.png',
     '/images/huobi.png',
-    '/images/btc.png',
-    '/images/binance.png',
-    '/images/okx.png',
-    '/images/huobi.png',
-    '/images/btc.png',
-    '/images/binance.png',
-    '/images/okx.png',
-    '/images/huobi.png',
+    '/images/bitget.png',
+    '/images/metamask.png',
+    '/images/gate.png',
+    '/images/tokenpocket.png',
   ];
 
   const [isSpinning, setIsSpinning] = useState(false);
@@ -138,18 +134,19 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
         audio.play();
       }
 
-      const newPositions = Array(3).fill(0).map(() => Math.floor(Math.random() * 4));
+      // 根据概率生成结果
+      const result = generateSpinResult();
       
       // 同时开始所有槽位的旋转
-      spinSlot(0, newPositions[0], 1.5);
-      spinSlot(1, newPositions[1], 2);
-      spinSlot(2, newPositions[2], 2.5);
+      spinSlot(0, result[0], 1.5);
+      spinSlot(1, result[1], 2);
+      spinSlot(2, result[2], 2.5);
 
       setTimeout(() => {
         setIsSpinning(false);
-        setFinalPositions(newPositions);
+        setFinalPositions(result);
         if (!isGuestMode) {
-          checkWinning(newPositions);
+          checkWinning(result);
         }
       }, 2500);
 
@@ -172,6 +169,21 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
     }
   };
 
+  const generateSpinResult = () => {
+    const random = Math.random();
+    if (random < 0.01) return [0, 0, 0]; // BTC
+    if (random < 0.03) return [1, 1, 1]; // Binance
+    if (random < 0.06) return [2, 2, 2]; // OKX
+    if (random < 0.10) return [3, 3, 3]; // Huobi
+    if (random < 0.15) return [4, 4, 4]; // Bitget
+    if (random < 0.20) return [5, 5, 5]; // Metamask
+    if (random < 0.25) return [6, 6, 6]; // Gate
+    if (random < 0.30) return [7, 7, 7]; // TokenPocket
+    
+    // 如果没有中奖，随机生成不同的图标
+    return Array(3).fill(0).map(() => Math.floor(Math.random() * exchangeIcons.length));
+  };
+
   const checkWinning = (positions: number[]) => {
     if (positions[0] === positions[1] && positions[1] === positions[2]) {
       const iconName = exchangeIcons[positions[0]].split('/').pop()?.split('.')[0] || '';
@@ -188,30 +200,36 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
         setWinAmount('');
       }, 3000);
     } else {
-      // 根据图标名称设置不同的奖励概率和金额
       const rewardProbabilities = {
-        'btc': { probability: 0.01, maxUsdt: 1, maxPoints: 1000 },
-        'binance': { probability: 0.02, maxUsdt: 0.9, maxPoints: 900 },
-        'okx': { probability: 0.03, maxUsdt: 0.8, maxPoints: 800 },
-        'huobi': { probability: 0.04, maxUsdt: 0.7, maxPoints: 700 },
+        'btc': { maxUsdt: 1, maxPoints: 1000 },
+        'binance': { maxUsdt: 0.9, maxPoints: 900 },
+        'okx': { maxUsdt: 0.8, maxPoints: 800 },
+        'huobi': { maxUsdt: 0.7, maxPoints: 700 },
+        'bitget': { maxUsdt: 0.6, maxPoints: 600 },
+        'metamask': { maxUsdt: 0.5, maxPoints: 500 },
+        'gate': { maxUsdt: 0.4, maxPoints: 400 },
+        'tokenpocket': { maxUsdt: 0.3, maxPoints: 300 },
       };
 
       const reward = rewardProbabilities[iconName as keyof typeof rewardProbabilities] || 
-                     { probability: 0.05, maxUsdt: 0.1, maxPoints: 100 };
+                     { maxUsdt: 0.1, maxPoints: 100 };
 
       const usdtWon = parseFloat((Math.random() * (reward.maxUsdt - 0.1) + 0.1).toFixed(2));
       const pointsWon = Math.floor(Math.random() * (reward.maxPoints - 100) + 100);
 
       try {
+        console.log('Sending win request:', { tgId, usdtWon, pointsWon });
         const response = await fetch('/api/user/win', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tgId, usdtWon, pointsWon }),
         });
         if (!response.ok) {
-          throw new Error('Failed to update user data');
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to update user data');
         }
         const data = await response.json();
+        console.log('Received response:', data);
         
         setPoints(data.newPoints);
         setUsdt(data.newUsdt);
@@ -225,7 +243,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
         }, 3000);
       } catch (error) {
         console.error("Error updating win:", error);
-        alert(t('updateWinError'));
+        alert(t('updateWinError') + ': ' + (error as Error).message);
       }
     }
   };
