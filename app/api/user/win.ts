@@ -10,9 +10,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: '无效的请求数据' }, { status: 400 });
   }
 
-  // 将 USDT 转换为整数（以分为单位）
-  const usdtWonCents = Math.round(usdtWon * 100);
-
   let client;
   try {
     client = await pool.connect();
@@ -23,7 +20,7 @@ export async function POST(request: Request) {
 
     const result = await client.query(
       'UPDATE users SET points = points + $1, usdt = usdt + $2 WHERE tg_id = $3 RETURNING points, usdt',
-      [pointsWon, usdtWonCents, tgId]
+      [pointsWon, usdtWon, tgId]
     );
     console.log('查询结果:', result.rows);
 
@@ -40,7 +37,7 @@ export async function POST(request: Request) {
     console.log('更新后的用户数据:', updatedUser);
     return NextResponse.json({ 
       newPoints: updatedUser.points,
-      newUsdt: updatedUser.usdt / 100 // 将分转换回元
+      newUsdt: parseFloat(updatedUser.usdt)
     });
   } catch (error) {
     console.error('更新用户数据时出错:', error);
