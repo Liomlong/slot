@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import NextImage from 'next/image';
+import Image from 'next/image';
 import { useTranslation } from '../hooks/useTranslation';
 import { IoVolumeHigh, IoVolumeMute } from 'react-icons/io5';
 import { FaSpinner, FaUserPlus, FaPlay, FaRedo } from 'react-icons/fa';
@@ -18,14 +18,12 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   const [spinsLeft, setSpinsLeft] = useState(isGuestMode ? Infinity : 3);
 
   const exchangeIcons = [
-    '/images/btc.png',
-    '/images/binance.png',
-    '/images/okx.png',
-    '/images/huobi.png',
-    '/images/bitget.png',
-    '/images/metamask.png',
-    '/images/gate.png',
-    '/images/tokenpocket.png',
+    '/images/bitcoin.webp',
+    '/images/ethereum.webp',
+    '/images/tether.webp',
+    '/images/binance-coin.webp',
+    '/images/toncoin.webp',
+    '/images/solana.webp',
   ];
 
   const [isSpinning, setIsSpinning] = useState(false);
@@ -39,6 +37,9 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   const [tgId, setTgId] = useState<number | null>(null);
   const [lastSpinTime, setLastSpinTime] = useState<number | null>(null);
   const [userPhotoUrl, setUserPhotoUrl] = useState<string | null>(null);
+
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [failedImages, setFailedImages] = useState<string[]>([]);
 
   useEffect(() => {
     if (!isGuestMode) {
@@ -89,10 +90,34 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   }, []);
 
   useEffect(() => {
-    exchangeIcons.forEach((icon) => {
-      const img = new window.Image();
-      img.src = icon;
-    });
+    const loadImages = async () => {
+      const imagePromises = exchangeIcons.map((icon) => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => {
+            console.log(`Image loaded successfully: ${icon}`);
+            resolve(icon);
+          };
+          img.onerror = (error) => {
+            console.error(`Failed to load image: ${icon}`, error);
+            setFailedImages(prev => [...prev, icon]);
+            reject(error);
+          };
+          img.src = icon;
+        });
+      });
+
+      try {
+        await Promise.all(imagePromises);
+        console.log('All images loaded successfully');
+        setImagesLoaded(true);
+      } catch (error) {
+        console.error("Failed to load some images:", error);
+        setImagesLoaded(true);
+      }
+    };
+
+    loadImages();
   }, []);
 
   const toggleMute = () => {
@@ -112,11 +137,14 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   const spinSlot = (index: number, finalPosition: number, duration: number) => {
     const ref = slotRefs[index];
     if (ref.current) {
+      const totalIcons = exchangeIcons.length;
+      const initialOffset = Math.floor(Math.random() * totalIcons) * 100;
+      
       ref.current.style.transition = 'none';
-      ref.current.style.transform = 'translateY(0)';
+      ref.current.style.transform = `translateY(-${initialOffset}px)`;
       ref.current.offsetHeight; // 触发重排
       ref.current.style.transition = `transform ${duration}s cubic-bezier(0.25, 0.1, 0.25, 1)`;
-      ref.current.style.transform = `translateY(-${(finalPosition + 8) * 100}px)`;
+      ref.current.style.transform = `translateY(-${(finalPosition + totalIcons) * 100}px)`;
       
       setTimeout(() => {
         if (ref.current) {
@@ -171,14 +199,12 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
 
   const generateSpinResult = () => {
     const random = Math.random();
-    if (random < 0.01) return [0, 0, 0]; // BTC
-    if (random < 0.03) return [1, 1, 1]; // Binance
-    if (random < 0.06) return [2, 2, 2]; // OKX
-    if (random < 0.10) return [3, 3, 3]; // Huobi
-    if (random < 0.15) return [4, 4, 4]; // Bitget
-    if (random < 0.20) return [5, 5, 5]; // Metamask
-    if (random < 0.25) return [6, 6, 6]; // Gate
-    if (random < 0.30) return [7, 7, 7]; // TokenPocket
+    if (random < 0.01) return [0, 0, 0]; // Bitcoin
+    if (random < 0.03) return [1, 1, 1]; // Ethereum
+    if (random < 0.06) return [2, 2, 2]; // Tether
+    if (random < 0.10) return [3, 3, 3]; // Binance Coin
+    if (random < 0.15) return [4, 4, 4]; // Toncoin
+    if (random < 0.20) return [5, 5, 5]; // Solana
     
     // 如果没有中奖，随机生成不同的图标
     return Array(3).fill(0).map(() => Math.floor(Math.random() * exchangeIcons.length));
@@ -201,14 +227,12 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
       }, 3000);
     } else {
       const rewardProbabilities = {
-        'btc': { maxUsdt: 1, maxPoints: 1000 },
-        'binance': { maxUsdt: 0.9, maxPoints: 900 },
-        'okx': { maxUsdt: 0.8, maxPoints: 800 },
-        'huobi': { maxUsdt: 0.7, maxPoints: 700 },
-        'bitget': { maxUsdt: 0.6, maxPoints: 600 },
-        'metamask': { maxUsdt: 0.5, maxPoints: 500 },
-        'gate': { maxUsdt: 0.4, maxPoints: 400 },
-        'tokenpocket': { maxUsdt: 0.3, maxPoints: 300 },
+        'bitcoin': { maxUsdt: 1, maxPoints: 1000 },
+        'ethereum': { maxUsdt: 0.9, maxPoints: 900 },
+        'tether': { maxUsdt: 0.8, maxPoints: 800 },
+        'binance-coin': { maxUsdt: 0.7, maxPoints: 700 },
+        'toncoin': { maxUsdt: 0.6, maxPoints: 600 },
+        'solana': { maxUsdt: 0.5, maxPoints: 500 },
       };
 
       const reward = rewardProbabilities[iconName as keyof typeof rewardProbabilities] || 
@@ -260,6 +284,43 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
     }
   };
 
+  const renderSlotIcons = () => {
+    return (
+      <div className="grid grid-cols-3 gap-2 bg-white rounded-lg p-2 overflow-hidden">
+        {[0, 1, 2].map((slotIndex) => (
+          <div key={slotIndex} className="w-24 h-24 bg-gray-200 rounded-md overflow-hidden">
+            <div
+              ref={slotRefs[slotIndex]}
+              className="flex flex-col slot-column"
+            >
+              {imagesLoaded ? (
+                [...Array(exchangeIcons.length * 3)].map((_, index) => (
+                  <div key={index} className="w-24 h-24 flex items-center justify-center">
+                    <Image
+                      src={exchangeIcons[index % exchangeIcons.length]}
+                      alt="Exchange Icon"
+                      width={60}
+                      height={60}
+                      className="object-contain"
+                      onError={(e) => {
+                        console.error(`Error loading image: ${exchangeIcons[index % exchangeIcons.length]}`);
+                        e.currentTarget.src = '/images/fallback-icon.png'; // 使用一个备用图标
+                      }}
+                    />
+                  </div>
+                ))
+              ) : (
+                <div className="w-24 h-24 flex items-center justify-center">
+                  <FaSpinner className="animate-spin text-4xl text-gray-400" />
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col items-center p-4 bg-gradient-to-b from-indigo-900 to-purple-900 min-h-screen">
       {/* 用户信息 */}
@@ -271,7 +332,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
             </div>
           ) : (
             userPhotoUrl ? (
-              <NextImage
+              <Image
                 src={userPhotoUrl}
                 alt="User Avatar"
                 width={48}
@@ -315,28 +376,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
         </button>
 
         {/* 老虎机图标 */}
-        <div className="grid grid-cols-3 gap-2 bg-white rounded-lg p-2 overflow-hidden">
-          {[0, 1, 2].map((slotIndex) => (
-            <div key={slotIndex} className="w-24 h-24 bg-gray-200 rounded-md overflow-hidden">
-              <div
-                ref={slotRefs[slotIndex]}
-                className="flex flex-col slot-column"
-              >
-                {[...Array(12)].map((_, index) => (
-                  <div key={index} className="w-24 h-24 flex items-center justify-center">
-                    <NextImage 
-                      src={exchangeIcons[index % 4]} 
-                      alt="Exchange Icon" 
-                      width={60} 
-                      height={60} 
-                      className="object-contain" 
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        {renderSlotIcons()}
 
         {/* 旋转按钮 */}
         <button
@@ -372,7 +412,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
           </button>
           <button
             onClick={() => {
-              // 处理自动旋转逻辑
+              // 处理自动旋转逻
             }}
             disabled={isSpinning || spinsLeft < 5}
             className={`flex items-center justify-center px-4 py-2 text-sm rounded-full shadow flex-1 ${
