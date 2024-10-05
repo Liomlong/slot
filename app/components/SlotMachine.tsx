@@ -18,12 +18,12 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   const [spinsLeft, setSpinsLeft] = useState(isGuestMode ? Infinity : 3);
 
   const exchangeIcons = [
-    '/images/bitcoin.webp',
-    '/images/ethereum.webp',
-    '/images/tether.webp',
-    '/images/binance-coin.webp',
-    '/images/toncoin.webp',
-    '/images/solana.webp',
+    '/images/bitcoin.jpg',
+    '/images/ethereum.jpg',
+    '/images/tether.jpg',
+    '/images/binance-coin.jpg',
+    '/images/toncoin.jpg',
+    '/images/solana.jpg',
   ];
 
   const [isSpinning, setIsSpinning] = useState(false);
@@ -39,7 +39,6 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   const [userPhotoUrl, setUserPhotoUrl] = useState<string | null>(null);
 
   const [imagesLoaded, setImagesLoaded] = useState(false);
-  const [failedImages, setFailedImages] = useState<string[]>([]);
 
   useEffect(() => {
     if (!isGuestMode) {
@@ -63,8 +62,8 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
                 console.log("User info from API:", data);
                 setPoints(data.points);
                 setUsdt(data.usdt);
-                setSpinsLeft(data.spinsLeft);
-                setLastSpinTime(data.lastSpinTime);
+                setSpinsLeft(data.spins_left);
+                setLastSpinTime(data.last_spin_time);
                 if (data.username) {
                   setUsername(data.username);
                 }
@@ -86,38 +85,60 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   }, [isGuestMode]);
 
   useEffect(() => {
-    setAudio(new Audio('/sounds/spin.mp3'));
+    const loadAudio = () => {
+      const newAudio = new Audio('/sounds/spin.mp3');
+      newAudio.load();
+      newAudio.addEventListener('canplaythrough', () => {
+        console.log('音频加载成功');
+        setAudio(newAudio);
+      });
+      newAudio.addEventListener('error', (e) => {
+        console.error('音频加载失败:', e);
+      });
+    };
+
+    loadAudio();
+
+    return () => {
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+    };
   }, []);
 
   useEffect(() => {
     const loadImages = async () => {
       const imagePromises = exchangeIcons.map((icon) => {
         return new Promise((resolve, reject) => {
-          const img = new window.Image(); // 使用 window.Image
-          img.onload = () => {
-            console.log(`Image loaded successfully: ${icon}`);
-            resolve(icon);
-          };
-          img.onerror = (error) => {
-            console.error(`Failed to load image: ${icon}`, error);
-            setFailedImages(prev => [...prev, icon]);
-            reject(error);
-          };
+          const img = new Image();
+          img.onload = () => resolve(icon);
+          img.onerror = reject;
           img.src = icon;
         });
       });
 
       try {
         await Promise.all(imagePromises);
-        console.log('All images loaded successfully');
         setImagesLoaded(true);
       } catch (error) {
         console.error("Failed to load some images:", error);
+        // 即使有些图片加载失败，我们也设置为 true，以便显示已加载的图片
         setImagesLoaded(true);
       }
     };
 
     loadImages();
+  }, []);
+
+  useEffect(() => {
+    const tg = (window as any).Telegram?.WebApp;
+    if (tg && tg.initDataUnsafe?.user) {
+      setTgId(tg.initDataUnsafe.user.id);
+      console.log("tgId set:", tg.initDataUnsafe.user.id);
+    } else {
+      console.log("Telegram WebApp or user data not available");
+    }
   }, []);
 
   const toggleMute = () => {
@@ -128,72 +149,92 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   };
 
   const isFreeSpinAvailable = () => {
-    if (!lastSpinTime) return true;
+    if (lastSpinTime === null) {
+      console.log("Free spin available: No last spin time");
+      return true;
+    }
     const now = new Date().getTime();
-    const hoursSinceLastSpin = (now - lastSpinTime) / (1000 * 60 * 60);
-    return hoursSinceLastSpin >= 24;
+    const timeSinceLastSpin = now - lastSpinTime;
+    const isFree = timeSinceLastSpin >= 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    console.log("Free spin check:", { lastSpinTime, timeSinceLastSpin, isFree });
+    return isFree;
   };
 
   const spinSlot = (index: number, finalPosition: number, duration: number) => {
     const ref = slotRefs[index];
     if (ref.current) {
-      const totalIcons = exchangeIcons.length;
-      const initialOffset = Math.floor(Math.random() * totalIcons) * 100;
+      const totalHeight = exchangeIcons.length * 100; // 总高度
+      const initialOffset = -3 * totalHeight; // 初始位置设置为3倍总高度，确保有足够的空间从上往下转动
+      const finalOffset = -finalPosition * 100; // 最终位置
       
+      // 设置初始位置
       ref.current.style.transition = 'none';
-      ref.current.style.transform = `translateY(-${initialOffset}px)`;
-      ref.current.offsetHeight; // 触发重排
-      ref.current.style.transition = `transform ${duration}s cubic-bezier(0.25, 0.1, 0.25, 1)`;
-      ref.current.style.transform = `translateY(-${(finalPosition + totalIcons) * 100}px)`;
+      ref.current.style.transform = `translateY(${initialOffset}px)`;
       
-      setTimeout(() => {
-        if (ref.current) {
-          ref.current.style.transition = 'none';
-          ref.current.style.transform = `translateY(-${finalPosition * 100}px)`;
-        }
-      }, duration * 1000);
+      // 强制重绘
+      ref.current.offsetHeight;
+      
+      // 开始动画
+      ref.current.style.transition = `transform ${duration}s cubic-bezier(0.25, 0.1, 0.25, 1)`;
+      ref.current.style.transform = `translateY(${finalOffset}px)`;
     }
   };
 
   const handleSpin = async () => {
-    if (isGuestMode || (spinsLeft > 0 || isFreeSpinAvailable()) && !isSpinning && tgId) {
-      setIsSpinning(true);
-      if (!isMuted && audio) {
-        audio.play();
-      }
+    console.log("handleSpin called");
+    console.log("Current state:", { isGuestMode, spinsLeft, isFreeSpinAvailable: isFreeSpinAvailable(), isSpinning, tgId });
 
-      // 根据概率生成结果
-      const result = generateSpinResult();
-      
-      // 同时开始所有槽位的旋转
-      spinSlot(0, result[0], 1.5);
-      spinSlot(1, result[1], 2);
-      spinSlot(2, result[2], 2.5);
-
-      setTimeout(() => {
-        setIsSpinning(false);
-        setFinalPositions(result);
-        if (!isGuestMode) {
-          checkWinning(result);
+    if ((isGuestMode || spinsLeft > 0 || isFreeSpinAvailable()) && !isSpinning) {
+      try {
+        console.log("Spin conditions met, starting spin");
+        setIsSpinning(true);
+        if (!isMuted && audio) {
+          try {
+            await audio.play();
+            console.log("音频播放成功");
+          } catch (error) {
+            console.error("音频播放失败:", error);
+          }
         }
-      }, 2500);
 
-      if (!isGuestMode) {
-        try {
+        // 根据概率生成结果
+        const result = generateSpinResult();
+        console.log("Spin result:", result);
+        
+        // 同时开始所有槽位的旋转，增加转动时间
+        spinSlot(0, result[0], 4);
+        spinSlot(1, result[1], 4.5);
+        spinSlot(2, result[2], 5);
+
+        setTimeout(() => {
+          setIsSpinning(false);
+          setFinalPositions(result);
+          if (!isGuestMode) {
+            checkWinning(result);
+          }
+        }, 5000); // 增加等待时间，与最长的转动时间一致
+
+        if (!isGuestMode) {
+          console.log("Sending spin request to server");
           const response = await fetch('/api/user/spin', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ tgId }),
           });
+          console.log("Received response from server:", response.status);
           if (!response.ok) throw new Error('Spin request failed');
           const data = await response.json();
+          console.log("Spin response data:", data);
           setSpinsLeft(data.spinsLeft);
           setLastSpinTime(data.lastSpinTime);
-        } catch (error) {
-          console.error("Error during spin:", error);
-          alert(t('spinError'));
         }
+      } catch (error) {
+        console.error("Error during spin:", error);
+        setIsSpinning(false);
+        alert(t('spinError'));
       }
+    } else {
+      console.log("Spin conditions not met:", { isGuestMode, spinsLeft, isFreeSpinAvailable: isFreeSpinAvailable(), isSpinning, tgId });
     }
   };
 
@@ -285,35 +326,43 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   };
 
   const renderSlotIcons = () => {
+    if (!imagesLoaded) {
+      return (
+        <div className="flex justify-center gap-2 bg-gray-800 rounded-lg p-4 shadow-inner">
+          {[0, 1, 2].map((slotIndex) => (
+            <div key={slotIndex} className="w-24 h-24 bg-white rounded-md overflow-hidden relative">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <FaSpinner className="animate-spin text-4xl text-gray-400" />
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
     return (
-      <div className="grid grid-cols-3 gap-2 bg-white rounded-lg p-2 overflow-hidden">
+      <div className="flex justify-center gap-2 bg-gray-800 rounded-lg p-4 shadow-inner">
         {[0, 1, 2].map((slotIndex) => (
-          <div key={slotIndex} className="w-24 h-24 bg-gray-200 rounded-md overflow-hidden">
+          <div key={slotIndex} className="w-24 h-24 bg-white rounded-md overflow-hidden relative">
             <div
               ref={slotRefs[slotIndex]}
-              className="flex flex-col slot-column"
+              className="absolute top-0 left-0 w-full transition-transform duration-1000 ease-in-out"
+              style={{
+                transform: `translateY(${finalPositions[slotIndex] * -100}px)`,
+              }}
             >
-              {imagesLoaded ? (
-                [...Array(exchangeIcons.length * 3)].map((_, index) => (
-                  <div key={index} className="w-24 h-24 flex items-center justify-center">
-                    <Image
-                      src={exchangeIcons[index % exchangeIcons.length]}
-                      alt="Exchange Icon"
-                      width={60}
-                      height={60}
-                      className="object-contain"
-                      onError={(e) => {
-                        console.error(`Error loading image: ${exchangeIcons[index % exchangeIcons.length]}`);
-                        e.currentTarget.src = '/images/fallback-icon.png'; // 使用一个备用图标
-                      }}
-                    />
-                  </div>
-                ))
-              ) : (
-                <div className="w-24 h-24 flex items-center justify-center">
-                  <FaSpinner className="animate-spin text-4xl text-gray-400" />
+              {[...Array(exchangeIcons.length * 3)].map((_, index) => (
+                <div key={index} className="w-24 h-24 flex items-center justify-center flex-shrink-0">
+                  <Image
+                    src={exchangeIcons[index % exchangeIcons.length]}
+                    alt={`Exchange Icon ${index + 1}`}
+                    width={60}
+                    height={60}
+                    className="object-contain w-16 h-16"
+                    priority={index < exchangeIcons.length}
+                  />
                 </div>
-              )}
+              ))}
             </div>
           </div>
         ))}
@@ -378,14 +427,14 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
         {/* 老虎机图标 */}
         {renderSlotIcons()}
 
-        {/* 旋转按钮 */}
+        {/* 旋转钮 */}
         <button
           onClick={handleSpin}
           disabled={isSpinning || (!isGuestMode && !isFreeSpinAvailable() && spinsLeft === 0)}
           className={`mt-4 w-full py-3 rounded-full text-white font-bold text-lg ${
             isSpinning || (!isGuestMode && !isFreeSpinAvailable() && spinsLeft === 0)
               ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-yellow-500 hover:bg-yellow-600'
+              : 'bg-yellow-500 hover:bg-yellow-600 animate-pulse'
           }`}
         >
           {isSpinning ? (
@@ -412,7 +461,8 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
           </button>
           <button
             onClick={() => {
-              // 处理自动旋转逻
+              // 处理自动旋转逻辑
+              console.log("Auto spin clicked");
             }}
             disabled={isSpinning || spinsLeft < 5}
             className={`flex items-center justify-center px-4 py-2 text-sm rounded-full shadow flex-1 ${
