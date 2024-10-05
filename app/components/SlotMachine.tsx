@@ -113,7 +113,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
     const loadImages = async () => {
       const imagePromises = exchangeIcons.map((icon) => {
         return new Promise((resolve, reject) => {
-          const img = new Image();
+          const img = new Image(60, 60); // 提供宽度和高度参数
           img.onload = () => resolve(icon);
           img.onerror = reject;
           img.src = icon;
