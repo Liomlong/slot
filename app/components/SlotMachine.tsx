@@ -224,12 +224,13 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tgId, usdtWon, pointsWon }),
         });
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || '更新用户数据失败');
-        }
+        console.log('收到响应状态:', response.status);
         const data = await response.json();
-        console.log('收到响应:', data);
+        console.log('收到响应数据:', data);
+        
+        if (!response.ok) {
+          throw new Error(data.message || '更新用户数据失败');
+        }
         
         setPoints(data.newPoints);
         setUsdt(data.newUsdt);
