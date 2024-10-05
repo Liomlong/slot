@@ -218,7 +218,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
       const pointsWon = Math.floor(Math.random() * (reward.maxPoints - 100) + 100);
 
       try {
-        console.log('发送获胜请求:', { tgId, usdtWon, pointsWon });
+        console.log('准备发送获胜请求:', { tgId, usdtWon, pointsWon });
         const response = await fetch('/api/user/win', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -232,6 +232,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
           throw new Error(data.message || '更新用户数据失败');
         }
         
+        console.log('更新用户数据成功，新的积分和USDT:', data.newPoints, data.newUsdt);
         setPoints(data.newPoints);
         setUsdt(data.newUsdt);
         
@@ -244,7 +245,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
         }, 3000);
       } catch (error) {
         console.error("更新获胜时出错:", error);
-        alert(t('updateWinError') + ': ' + (error as Error).message);
+        alert(t('updateWinError') + ': ' + (error instanceof Error ? error.message : String(error)));
       }
     }
   };
