@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useTranslation } from '../hooks/useTranslation';
 import { IoVolumeHigh, IoVolumeMute } from 'react-icons/io5';
 import { FaSpinner, FaUserPlus, FaPlay, FaRedo } from 'react-icons/fa';
+import Rank from './Rank';
 
 interface SlotMachineProps {
   isGuestMode: boolean;
@@ -39,6 +40,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   const [userPhotoUrl, setUserPhotoUrl] = useState<string | null>(null);
 
   const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [showRank, setShowRank] = useState(false);
 
   useEffect(() => {
     if (!isGuestMode) {
@@ -500,6 +502,29 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
         <p>spinsLeft: {spinsLeft}</p>
         <p>isSpinning: {isSpinning ? 'true' : 'false'}</p>
       </div>
+
+      {/* 添加排行榜按钮 */}
+      <button
+        onClick={() => setShowRank(true)}
+        className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+      >
+        {t('rank.title')}
+      </button>
+
+      {/* 显示排行榜 */}
+      {showRank && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <Rank tgId={tgId} />
+            <button
+              onClick={() => setShowRank(false)}
+              className="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            >
+              {t('slotMachine.close')}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

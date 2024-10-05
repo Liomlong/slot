@@ -23,7 +23,13 @@
     "wallet": "钱包"
   },
   "rank": {
-    "title": "排行榜"
+    "title": "排行榜",
+    "yourRank": "您的排名",
+    "rankInfo": "您当前排名第 {rank} 位，积分为 {points}",
+    "top100": "前100名",
+    "rankColumn": "排名",
+    "usernameColumn": "用户名",
+    "pointsColumn": "积分"
   },
   "wallet": {
     "title": "我的钱包"
