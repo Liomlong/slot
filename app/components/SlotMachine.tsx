@@ -93,7 +93,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
     const loadImages = async () => {
       const imagePromises = exchangeIcons.map((icon) => {
         return new Promise((resolve, reject) => {
-          const img = new Image();
+          const img = new window.Image(); // 使用 window.Image
           img.onload = () => {
             console.log(`Image loaded successfully: ${icon}`);
             resolve(icon);
