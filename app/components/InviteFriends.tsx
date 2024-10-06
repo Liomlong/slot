@@ -22,7 +22,8 @@ const InviteFriends: React.FC<InviteFriendsProps> = ({ tgId }) => {
 
   useEffect(() => {
     if (tgId) {
-      setInviteLink(`https://t.me/web3luckybot?start=${tgId}`);
+      // 更新这里的邀请链接格式
+      setInviteLink(`https://t.me/web3luckybot/app?startapp=${tgId}`);
       fetchInviteRecords();
     }
   }, [tgId]);

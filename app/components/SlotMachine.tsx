@@ -19,12 +19,12 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   const [spinsLeft, setSpinsLeft] = useState(isGuestMode ? Infinity : 3);
 
   const exchangeIcons = [
-    '/images/bitcoin.jpg',
-    '/images/ethereum.jpg',
-    '/images/tether.jpg',
-    '/images/binance-coin.jpg',
-    '/images/toncoin.jpg',
-    '/images/solana.jpg',
+    '/USDT.png',
+    '/BNB.png',
+    '/SOL.png',
+    '/TON.png',
+    '/ETH.png',
+    '/BTC.png',
   ];
 
   const [isSpinning, setIsSpinning] = useState(false);
@@ -113,25 +113,26 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
     const loadImages = async () => {
       const imagePromises = exchangeIcons.map((icon) => {
         return new Promise((resolve, reject) => {
-          if (typeof Image !== 'undefined') {
-            const img = new (Image as any)(60, 60);
-            img.onload = () => resolve(icon);
-            img.onerror = reject;
-            img.src = icon;
-          } else {
-            // 在服务器端，直接解析 Promise
+          const img = new Image();
+          img.onload = () => {
+            console.log(`Image loaded successfully: ${icon}`);
             resolve(icon);
-          }
+          };
+          img.onerror = () => {
+            console.error(`Failed to load image: ${icon}`);
+            reject(new Error(`Failed to load image: ${icon}`));
+          };
+          img.src = icon;
         });
       });
 
       try {
         await Promise.all(imagePromises);
+        console.log('All images loaded successfully');
         setImagesLoaded(true);
       } catch (error) {
         console.error("Failed to load some images:", error);
-        // 即使有些图片加载失败，我们也设置为 true，以便显示已加载的图片
-        setImagesLoaded(true);
+        setImagesLoaded(true); // 即使有些图片加载失败，我们也设置为 true，以便显示已加载的图片
       }
     };
 
@@ -367,6 +368,10 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
                     height={60}
                     className="object-contain w-16 h-16"
                     priority={index < exchangeIcons.length}
+                    onError={(e) => {
+                      console.error(`Error loading image: ${exchangeIcons[index % exchangeIcons.length]}`);
+                      e.currentTarget.src = '/fallback-icon.png'; // 使用一个备用图标
+                    }}
                   />
                 </div>
               ))}
