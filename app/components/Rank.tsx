@@ -44,7 +44,7 @@ const Rank: React.FC<{ tgId: number | null }> = ({ tgId }) => {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-64">{t('loading')}</div>;
+    return <div className="flex justify-center items-center h-64 text-white">{t('loading')}</div>;
   }
 
   if (!rankData) {
@@ -56,14 +56,12 @@ const Rank: React.FC<{ tgId: number | null }> = ({ tgId }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
-      className="p-4 bg-white rounded-lg shadow-md"
+      className="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-lg shadow-xl p-6"
     >
-      <h2 className="text-2xl font-bold mb-4 text-center text-purple-600">{t('rank.title')}</h2>
-      
       {rankData.userRank && (
-        <div className="mb-6 p-4 bg-purple-100 rounded-lg">
-          <h3 className="text-xl font-semibold text-purple-700">{t('rank.yourRank')}</h3>
-          <p className="text-lg">
+        <div className="mb-6 p-4 bg-purple-600 bg-opacity-50 rounded-lg text-white">
+          <h3 className="text-xl font-semibold">{t('rank.yourRank')}</h3>
+          <p className="text-lg mt-2">
             {t('rank.rankInfo', { rank: rankData.userRank.rank, points: rankData.userRank.points })}
           </p>
         </div>
@@ -75,39 +73,39 @@ const Rank: React.FC<{ tgId: number | null }> = ({ tgId }) => {
           placeholder={t('rank.searchPlaceholder')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full p-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+          className="w-full p-2 pl-10 bg-white bg-opacity-20 border border-purple-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder-purple-200"
         />
-        <FaSearch className="absolute left-3 top-3 text-gray-400" />
+        <FaSearch className="absolute left-3 top-3 text-purple-300" />
       </div>
 
-      <h3 className="text-xl font-semibold mb-2 text-purple-600">{t('rank.top100')}</h3>
+      <h3 className="text-xl font-semibold mb-2 text-white">{t('rank.top100')}</h3>
       <div className="overflow-x-auto">
         <table className="w-full table-auto">
           <thead>
-            <tr className="bg-purple-200">
-              <th className="px-4 py-2">{t('rank.rankColumn')}</th>
-              <th className="px-4 py-2">{t('rank.usernameColumn')}</th>
-              <th className="px-4 py-2">{t('rank.pointsColumn')}</th>
+            <tr className="bg-purple-700 bg-opacity-50 text-white">
+              <th className="px-4 py-2 text-left">{t('rank.rankColumn')}</th>
+              <th className="px-4 py-2 text-left">{t('rank.usernameColumn')}</th>
+              <th className="px-4 py-2 text-right">{t('rank.pointsColumn')}</th>
             </tr>
           </thead>
           <tbody>
             {filteredRankData?.map((user, index) => (
-              <tr key={index} className={index % 2 === 0 ? 'bg-purple-50' : 'bg-white'}>
-                <td className="border px-4 py-2 text-center">
+              <tr key={index} className={index % 2 === 0 ? 'bg-purple-600 bg-opacity-20' : 'bg-purple-500 bg-opacity-20'}>
+                <td className="border-b border-purple-400 px-4 py-2 text-white">
                   {user.rank <= 3 ? (
                     <FaMedal className={`inline-block mr-1 ${getMedalColor(user.rank)}`} />
                   ) : null}
                   {user.rank}
                 </td>
-                <td className="border px-4 py-2">{user.username}</td>
-                <td className="border px-4 py-2 text-right">{user.points.toLocaleString()}</td>
+                <td className="border-b border-purple-400 px-4 py-2 text-white">{user.username}</td>
+                <td className="border-b border-purple-400 px-4 py-2 text-right text-white">{user.points.toLocaleString()}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
       {filteredRankData?.length === 0 && (
-        <p className="text-center mt-4 text-gray-500">{t('rank.noResults')}</p>
+        <p className="text-center mt-4 text-purple-200">{t('rank.noResults')}</p>
       )}
     </motion.div>
   );

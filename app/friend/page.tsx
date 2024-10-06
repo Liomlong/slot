@@ -20,8 +20,8 @@ const FriendPage: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-purple-900 to-indigo-900">
       <Navbar />
-      <main className="flex-grow p-4">
-        <h1 className="text-2xl font-bold mb-4 text-white text-center">{t('friend.title')}</h1>
+      <main className="flex-grow p-4 container mx-auto max-w-4xl">
+        <h1 className="text-3xl font-bold mb-6 text-white text-center">{t('friend.title')}</h1>
         <InviteFriends tgId={tgId} />
       </main>
       <Footer />

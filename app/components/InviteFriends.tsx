@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
-import { FaCopy, FaShare } from 'react-icons/fa';
+import { FaCopy, FaShare, FaUserPlus } from 'react-icons/fa';
+import { motion } from 'framer-motion';
 
 interface InviteFriendsProps {
   tgId: number | null;
@@ -60,50 +61,56 @@ const InviteFriends: React.FC<InviteFriendsProps> = ({ tgId }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4 text-purple-600">{t('invite.title')}</h2>
-      <p className="mb-4">{t('invite.description')}</p>
-      <p className="mb-6 font-semibold">{t('invite.reward')}</p>
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      className="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-lg shadow-xl p-6"
+    >
+      <h2 className="text-2xl font-bold mb-4 text-white">{t('invite.title')}</h2>
+      <p className="mb-4 text-purple-200">{t('invite.description')}</p>
+      <p className="mb-6 font-semibold text-yellow-300">{t('invite.reward')}</p>
       
       <div className="mb-4">
         <input
           type="text"
           value={inviteLink}
           readOnly
-          className="w-full p-2 border border-gray-300 rounded-md"
+          className="w-full p-2 bg-white bg-opacity-20 border border-purple-300 rounded-md text-white"
         />
       </div>
       
       <div className="flex space-x-4 mb-6">
         <button
           onClick={copyToClipboard}
-          className="flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition duration-300"
+          className="flex-1 flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition duration-300"
         >
           <FaCopy className="mr-2" />
           {copied ? t('invite.copied') : t('invite.copy')}
         </button>
         <button
           onClick={shareLink}
-          className="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-300"
+          className="flex-1 flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-300"
         >
           <FaShare className="mr-2" />
           {t('invite.share')}
         </button>
       </div>
 
-      <h3 className="text-xl font-semibold mb-2 text-purple-600">{t('invite.records')}</h3>
+      <h3 className="text-xl font-semibold mb-2 text-white">{t('invite.records')}</h3>
       {inviteRecords.length > 0 ? (
-        <ul className="divide-y divide-gray-200">
+        <ul className="divide-y divide-purple-400">
           {inviteRecords.map((record, index) => (
-            <li key={index} className="py-2">
+            <li key={index} className="py-2 flex items-center text-purple-200">
+              <FaUserPlus className="mr-2 text-green-400" />
               <p>{t('invite.recordItem', { username: record.invitee_username, date: new Date(record.invited_at).toLocaleDateString() })}</p>
             </li>
           ))}
         </ul>
       ) : (
-        <p>{t('invite.noRecords')}</p>
+        <p className="text-purple-200">{t('invite.noRecords')}</p>
       )}
-    </div>
+    </motion.div>
   );
 };
 
