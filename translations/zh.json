@@ -36,10 +36,33 @@
     "errorLoading": "加载排行榜数据时出错"
   },
   "wallet": {
-    "title": "我的钱包"
+    "title": "我的钱包",
+    "balance": "余额",
+    "points": "积分",
+    "usdt": "USDT",
+    "bindWallet": "绑定钱包",
+    "enterWalletAddress": "输入钱包地址",
+    "bind": "绑定",
+    "bindSuccess": "钱包绑定成功",
+    "bindError": "钱包绑定失败",
+    "transfer": "转账",
+    "enterRecipient": "输入接收者",
+    "enterAmount": "输入金额",
+    "transferSuccess": "转账成功",
+    "transferError": "转账失败",
+    "withdraw": "提现",
+    "withdrawSuccess": "提现申请成功",
+    "withdrawError": "提现申请失败",
+    "transactionHistory": "交易记录",
+    "transactionItem": "{type} {amount} USDT 于 {date}",
+    "noTransactions": "暂无交易记录",
+    "deposit": "充值",
+    "withdrawal": "提现",
+    "transferIn": "转入",
+    "transferOut": "转出"
   },
   "friend": {
-    "title": "好友"
+    "title": "邀请好友"
   },
   "welcomeModal": {
     "title": "欢迎新用户!",
@@ -51,8 +74,16 @@
   },
   "invite": {
     "title": "邀请好友",
-    "description": "邀请好友并获得奖励:",
-    "reward": "每邀请一位好友,您将获得 🎟️ 100 积分和 💰 1 USDT"
+    "description": "邀请好友加入我们,一起玩转Web3Lucky!",
+    "reward": "每邀请一位好友,您将获得5次免费抽奖机会!",
+    "copy": "复制链接",
+    "copied": "已复制",
+    "share": "分享链接",
+    "shareTitle": "加入Web3Lucky",
+    "shareText": "来Web3Lucky一起玩转Web3游戏吧!",
+    "records": "邀请记录",
+    "recordItem": "您邀请了 {username} 于 {date}",
+    "noRecords": "暂无邀请记录"
   },
   "loading": "加载中...",
   "relogin": "重新登录",
