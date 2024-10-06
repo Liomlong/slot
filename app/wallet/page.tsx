@@ -24,14 +24,16 @@ const WalletPage: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-purple-900 to-indigo-900">
       <Navbar />
-      <main className="flex-grow p-4">
-        <h1 className="text-2xl font-bold mb-4 text-white text-center">{t('wallet.title')}</h1>
-        <div className="space-y-6">
-          <WalletBalance tgId={tgId} />
-          <BindWallet tgId={tgId} />
-          <TransferFunds tgId={tgId} />
-          <WithdrawFunds tgId={tgId} />
-          <TransactionHistory tgId={tgId} />
+      <main className="flex-grow p-4 overflow-y-auto">
+        <div className="container mx-auto max-w-4xl pb-16"> {/* 添加底部填充 */}
+          <h1 className="text-2xl font-bold mb-4 text-white text-center">{t('wallet.title')}</h1>
+          <div className="space-y-6">
+            <WalletBalance tgId={tgId} />
+            <BindWallet tgId={tgId} />
+            <TransferFunds tgId={tgId} />
+            <WithdrawFunds tgId={tgId} />
+            <TransactionHistory tgId={tgId} />
+          </div>
         </div>
       </main>
       <Footer />

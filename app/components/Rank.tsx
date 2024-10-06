@@ -79,10 +79,10 @@ const Rank: React.FC<{ tgId: number | null }> = ({ tgId }) => {
       </div>
 
       <h3 className="text-xl font-semibold mb-2 text-white">{t('rank.top100')}</h3>
-      <div className="overflow-x-auto">
+      <div className="max-h-96 overflow-y-auto"> {/* 限制最大高度并添加垂直滚动 */}
         <table className="w-full table-auto">
-          <thead>
-            <tr className="bg-purple-700 bg-opacity-50 text-white">
+          <thead className="sticky top-0 bg-purple-700 bg-opacity-50"> {/* 使表头固定 */}
+            <tr className="text-white">
               <th className="px-4 py-2 text-left">{t('rank.rankColumn')}</th>
               <th className="px-4 py-2 text-left">{t('rank.usernameColumn')}</th>
               <th className="px-4 py-2 text-right">{t('rank.pointsColumn')}</th>

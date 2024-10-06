@@ -49,14 +49,11 @@ const InviteFriends: React.FC<InviteFriendsProps> = ({ tgId }) => {
   };
 
   const shareLink = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: t('invite.shareTitle'),
-        text: t('invite.shareText'),
-        url: inviteLink,
-      }).catch((error) => console.log('Error sharing', error));
+    const tg = (window as any).Telegram?.WebApp;
+    if (tg && tg.shareUrl) {
+      tg.shareUrl(inviteLink);
     } else {
-      copyToClipboard();
+      console.error('Telegram WebApp is not available');
     }
   };
 
@@ -98,18 +95,20 @@ const InviteFriends: React.FC<InviteFriendsProps> = ({ tgId }) => {
       </div>
 
       <h3 className="text-xl font-semibold mb-2 text-white">{t('invite.records')}</h3>
-      {inviteRecords.length > 0 ? (
-        <ul className="divide-y divide-purple-400">
-          {inviteRecords.map((record, index) => (
-            <li key={index} className="py-2 flex items-center text-purple-200">
-              <FaUserPlus className="mr-2 text-green-400" />
-              <p>{t('invite.recordItem', { username: record.invitee_username, date: new Date(record.invited_at).toLocaleDateString() })}</p>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-purple-200">{t('invite.noRecords')}</p>
-      )}
+      <div className="max-h-60 overflow-y-auto"> {/* 限制最大高度并添加垂直滚动 */}
+        {inviteRecords.length > 0 ? (
+          <ul className="divide-y divide-purple-400">
+            {inviteRecords.map((record, index) => (
+              <li key={index} className="py-2 flex items-center text-purple-200">
+                <FaUserPlus className="mr-2 text-green-400" />
+                <p>{t('invite.recordItem', { username: record.invitee_username, date: new Date(record.invited_at).toLocaleDateString() })}</p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-purple-200">{t('invite.noRecords')}</p>
+        )}
+      </div>
     </motion.div>
   );
 };
