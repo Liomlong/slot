@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useTranslation } from '../hooks/useTranslation';
 import { IoVolumeHigh, IoVolumeMute } from 'react-icons/io5';
-import { FaSpinner, FaUserPlus, FaPlay, FaRedo } from 'react-icons/fa';
+import { FaSpinner, FaUserPlus, FaPlay, FaRedo, FaTimes } from 'react-icons/fa';
 import Rank from './Rank';
 
 interface SlotMachineProps {
@@ -518,15 +518,18 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
 
       {/* 显示排行榜 */}
       {showRank && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <Rank tgId={tgId} />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative">
             <button
               onClick={() => setShowRank(false)}
-              className="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              aria-label={t('slotMachine.close')}
             >
-              {t('slotMachine.close')}
+              <FaTimes size={24} />
             </button>
+            <div className="p-6">
+              <Rank tgId={tgId} />
+            </div>
           </div>
         </div>
       )}

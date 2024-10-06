@@ -11,7 +11,8 @@
     "smallWin": "小奖!",
     "congratulations": "恭喜您赢得 {amount}!",
     "continueGame": "继续游戏",
-    "spinning": "旋转中..."
+    "spinning": "旋转中...",
+    "close": "关闭"
   },
   "navbar": {
     "title": "Web3Lucky"
@@ -29,7 +30,10 @@
     "top100": "前100名",
     "rankColumn": "排名",
     "usernameColumn": "用户名",
-    "pointsColumn": "积分"
+    "pointsColumn": "积分",
+    "searchPlaceholder": "搜索用户名",
+    "noResults": "没有找到匹配的结果",
+    "errorLoading": "加载排行榜数据时出错"
   },
   "wallet": {
     "title": "我的钱包"
