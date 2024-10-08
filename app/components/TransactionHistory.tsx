@@ -42,11 +42,11 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ tgId }) => {
       <ul className="divide-y divide-gray-200">
         {transactions.map((transaction) => (
           <li key={transaction.id} className="py-2">
-            <p>{t('wallet.transactionItem', { 
-              type: t(`wallet.${transaction.type}`),
-              amount: transaction.amount,
-              date: new Date(transaction.timestamp).toLocaleString()
-            })}</p>
+            <p>{t('wallet.transactionItem')
+              .replace('{type}', t(`wallet.${transaction.type}`))
+              .replace('{amount}', transaction.amount.toString())
+              .replace('{date}', new Date(transaction.timestamp).toLocaleString())
+            }</p>
           </li>
         ))}
       </ul>
