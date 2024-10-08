@@ -44,6 +44,23 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
     '/images/BTC.png', // 1次
   ];
 
+  const fetchUserInfo = useCallback(async () => {
+    if (tgId) {
+      try {
+        const response = await fetch(`/api/user/info?tgId=${tgId}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setUsername(data.username || `User${tgId}`);
+        setPoints(data.points || 0);
+        setUsdt(data.usdt || 0);
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    }
+  }, [tgId]);
+
   useEffect(() => {
     const tg = (window as any).Telegram?.WebApp;
     if (tg && tg.initDataUnsafe?.user) {
@@ -74,23 +91,6 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
     const shuffled = [...exchangeIcons].sort(() => Math.random() - 0.5);
     setShuffledIcons(shuffled);
   };
-
-  const fetchUserInfo = useCallback(async () => {
-    if (tgId) {
-      try {
-        const response = await fetch(`/api/user/info?tgId=${tgId}`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        setUsername(data.username || `User${tgId}`);
-        setPoints(data.points || 0);
-        setUsdt(data.usdt || 0);
-      } catch (error) {
-        console.error('Error fetching user info:', error);
-      }
-    }
-  }, [tgId]);
 
   const fetchGameData = async () => {
     try {
