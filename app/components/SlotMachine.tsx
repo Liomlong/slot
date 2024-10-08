@@ -3,7 +3,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 
-const SlotMachine: React.FC = () => {
+interface SlotMachineProps {
+  isGuestMode: boolean;
+}
+
+const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   const [isSpinning, setIsSpinning] = useState(false);
   const [finalPositions, setFinalPositions] = useState<number[]>([5, 5, 5]); // 初始化为 BTC 的索引
   const [lastOffsets, setLastOffsets] = useState<number[]>([0, 0, 0]);
@@ -37,7 +41,9 @@ const SlotMachine: React.FC = () => {
   ];
 
   useEffect(() => {
-    fetchUserInfo();
+    if (!isGuestMode) {
+      fetchUserInfo();
+    }
     shuffleIcons();
     // 初始化槽位显示
     slotRefs.forEach((ref) => {
@@ -45,7 +51,7 @@ const SlotMachine: React.FC = () => {
         updateIconsDisplay(ref.current, [5]); // 5 是 BTC 的索引
       }
     });
-  }, []);
+  }, [isGuestMode]);
 
   const shuffleIcons = () => {
     const shuffled = [...exchangeIcons].sort(() => Math.random() - 0.5);
@@ -181,7 +187,7 @@ const SlotMachine: React.FC = () => {
 
   return (
     <div className="slot-machine flex flex-col items-center p-4 bg-gradient-to-b from-indigo-900 to-purple-900 min-h-screen">
-      <UserInfo username={username} points={points} usdt={usdt} />
+      {!isGuestMode && <UserInfo username={username} points={points} usdt={usdt} />}
       <SlotDisplay slotRefs={slotRefs} finalPositions={finalPositions} exchangeIcons={exchangeIcons} />
       <SpinButton isSpinning={isSpinning} onSpin={handleSpin} />
       <ActionButtons isSpinning={isSpinning} onInvite={handleInvite} onAutoSpin={() => handleAutoSpin(5)} />
