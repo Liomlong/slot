@@ -15,9 +15,9 @@ const FriendPage: React.FC = () => {
       <main className="flex-grow p-4">
         <div className="container mx-auto max-w-4xl">
           <h1 className="text-2xl font-bold mb-4 text-white text-center">
-            {t('friend.title') || 'Invite Friends'} {/* 添加默认值 */}
+            {t('friend.title') || 'Invite Friends'}
           </h1>
-          <InviteFriends tgId={null} /> {/* 这里需要传入实际的 tgId */}
+          <InviteFriends tgId={null} />
         </div>
       </main>
       <Footer />
