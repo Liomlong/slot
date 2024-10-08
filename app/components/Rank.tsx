@@ -62,7 +62,7 @@ const Rank: React.FC<{ tgId: number | null }> = ({ tgId }) => {
         <div className="mb-6 p-4 bg-purple-600 bg-opacity-50 rounded-lg text-white">
           <h3 className="text-xl font-semibold">{t('rank.yourRank')}</h3>
           <p className="text-lg mt-2">
-            {t('rank.rankInfo', { rank: rankData.userRank.rank, points: rankData.userRank.points })}
+            {t('rank.rankInfo').replace('{rank}', rankData.userRank.rank.toString()).replace('{points}', rankData.userRank.points.toString())}
           </p>
         </div>
       )}
