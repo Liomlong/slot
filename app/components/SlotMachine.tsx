@@ -47,17 +47,22 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   const fetchUserInfo = useCallback(async () => {
     if (tgId) {
       try {
+        console.log("Fetching user info for tgId:", tgId); // 添加日志
         const response = await fetch(`/api/user/info?tgId=${tgId}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
+        console.log("Received user data:", data); // 添加日志
         setUsername(data.username || `User${tgId}`);
         setPoints(data.points || 0);
         setUsdt(data.usdt || 0);
       } catch (error) {
         console.error('Error fetching user info:', error);
+        // 可以在这里添加一些用户友好的错误处理，比如设置一个错误状态
       }
+    } else {
+      console.log("No tgId available, cannot fetch user info"); // 添加日志
     }
   }, [tgId]);
 
@@ -65,11 +70,15 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
     const tg = (window as any).Telegram?.WebApp;
     if (tg && tg.initDataUnsafe?.user) {
       setTgId(tg.initDataUnsafe.user.id);
+      console.log("Telegram user ID:", tg.initDataUnsafe.user.id); // 添加日志
+    } else {
+      console.log("Telegram WebApp not initialized or user data not available"); // 添加日志
     }
   }, []);
 
   useEffect(() => {
     if (tgId && !isGuestMode) {
+      console.log("Calling fetchUserInfo"); // 添加日志
       fetchUserInfo();
     }
   }, [tgId, isGuestMode, fetchUserInfo]);
@@ -245,26 +254,30 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
     <div className="slot-machine flex flex-col items-center p-4 bg-gradient-to-b from-indigo-900 to-purple-900 min-h-screen">
       {!isGuestMode && (
         <div className="w-full max-w-md mb-4 bg-white bg-opacity-10 rounded-lg p-4 text-white">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-xl font-bold mr-3">
-                {username ? username[0].toUpperCase() : '?'}
+          {tgId ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-xl font-bold mr-3">
+                  {username ? username[0].toUpperCase() : '?'}
+                </div>
+                <div>
+                  <p className="font-semibold">@{username || 'Loading...'}</p>
+                </div>
               </div>
-              <div>
-                <p className="font-semibold">@{username || 'Loading...'}</p>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center">
+                  <FaTicketAlt className="text-yellow-400 mr-1" />
+                  <span>{points !== undefined ? points : 'Loading...'}</span>
+                </div>
+                <div className="flex items-center">
+                  <FaDollarSign className="text-green-400 mr-1" />
+                  <span>{usdt !== undefined ? usdt.toFixed(2) : 'Loading...'}</span>
+                </div>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center">
-                <FaTicketAlt className="text-yellow-400 mr-1" />
-                <span>{points !== undefined ? points : 'Loading...'}</span>
-              </div>
-              <div className="flex items-center">
-                <FaDollarSign className="text-green-400 mr-1" />
-                <span>{usdt !== undefined ? usdt.toFixed(2) : 'Loading...'}</span>
-              </div>
-            </div>
-          </div>
+          ) : (
+            <p>Unable to load user data. Please try refreshing the page.</p>
+          )}
         </div>
       )}
       <SlotDisplay slotRefs={slotRefs} finalPositions={finalPositions} exchangeIcons={shuffledIcons} />
