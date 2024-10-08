@@ -2,6 +2,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
+import UserProfile from './UserProfile';
+import { FaTicketAlt, FaDollarSign } from 'react-icons/fa'; // 导入图标
 
 interface SlotMachineProps {
   isGuestMode: boolean;
@@ -17,6 +19,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   const slotRefs = [useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null)];
   const [shuffledIcons, setShuffledIcons] = useState<string[]>([]);
   const [gameData, setGameData] = useState<any>(null);
+  const [showUserProfile, setShowUserProfile] = useState(false);
 
   const baseIcons = [
     '/images/TON.png',
@@ -215,9 +218,36 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
     }
   };
 
+  const toggleUserProfile = () => {
+    setShowUserProfile(!showUserProfile);
+  };
+
   return (
     <div className="slot-machine flex flex-col items-center p-4 bg-gradient-to-b from-indigo-900 to-purple-900 min-h-screen">
-      {!isGuestMode && <UserInfo username={username} points={points} usdt={usdt} />}
+      {!isGuestMode && (
+        <div className="w-full max-w-md mb-4 bg-white bg-opacity-10 rounded-lg p-4 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-xl font-bold mr-3">
+                {username ? username[0].toUpperCase() : '?'}
+              </div>
+              <div>
+                <p className="font-semibold">@{username || 'Loading...'}</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center">
+                <FaTicketAlt className="text-yellow-400 mr-1" />
+                <span>{points}</span>
+              </div>
+              <div className="flex items-center">
+                <FaDollarSign className="text-green-400 mr-1" />
+                <span>{usdt !== null && usdt !== undefined ? usdt.toFixed(2) : 'Loading...'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <SlotDisplay slotRefs={slotRefs} finalPositions={finalPositions} exchangeIcons={shuffledIcons} />
       <SpinButton isSpinning={isSpinning} onSpin={handleSpin} />
       <ActionButtons isSpinning={isSpinning} onInvite={handleInvite} onAutoSpin={() => handleAutoSpin(5)} />
@@ -225,8 +255,16 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   );
 };
 
-const UserInfo: React.FC<{ username: string | null; points: number; usdt: number }> = ({ username, points, usdt }) => (
-  <div className="flex items-center space-x-4 mb-4 bg-white bg-opacity-20 p-3 rounded-lg shadow-lg w-full max-w-md">
+const UserInfo: React.FC<{ 
+  username: string | null; 
+  points: number; 
+  usdt: number;
+  onProfileClick: () => void;
+}> = ({ username, points, usdt, onProfileClick }) => (
+  <div 
+    className="flex items-center space-x-4 mb-4 bg-white bg-opacity-20 p-3 rounded-lg shadow-lg w-full max-w-md cursor-pointer"
+    onClick={onProfileClick}
+  >
     <div className="flex-shrink-0">
       <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-xl font-bold">
         {username ? username[0].toUpperCase() : '?'}
