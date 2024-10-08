@@ -116,7 +116,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
           setIsSpinning(false);
           const isWin = checkWin(result.positions);
           console.log('Win:', isWin);
-          console.log('Final positions:', result.positions.map(index => exchangeIcons[index]));
+          console.log('Final positions:', result.positions.map((index: number) => exchangeIcons[index]));
           // 处理中奖逻辑
           if (isWin) {
             // 更新用户信息
