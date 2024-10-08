@@ -16,8 +16,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   const [usdt, setUsdt] = useState<number>(0);
   const slotRefs = [useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null)];
   const [shuffledIcons, setShuffledIcons] = useState<string[]>([]);
-  // 移除 lastResult 状态，因为我们不再需要它
-  // const [lastResult, setLastResult] = useState<number[]>([]);
+  const [gameData, setGameData] = useState<any>(null);
 
   const baseIcons = [
     '/images/TON.png',
@@ -43,6 +42,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   useEffect(() => {
     if (!isGuestMode) {
       fetchUserInfo();
+      fetchGameData();
     }
     shuffleIcons();
     // 初始化槽位显示
@@ -70,6 +70,21 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
     }
   };
 
+  const fetchGameData = async () => {
+    try {
+      const response = await fetch('/api/game/data');
+      const data = await response.json();
+      setGameData(data);
+      // 根据获取的数据更新游戏设置
+      if (data.exchangeIcons) {
+        setShuffledIcons(data.exchangeIcons);
+      }
+      // 可以添加更多的数据处理逻辑
+    } catch (error) {
+      console.error('Error fetching game data:', error);
+    }
+  };
+
   const generateSpinResult = () => {
     return Array(3).fill(0).map(() => Math.floor(Math.random() * exchangeIcons.length));
   };
@@ -79,21 +94,36 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
     return icons[0] === icons[1] && icons[1] === icons[2];
   };
 
-  const handleSpin = () => {
+  const handleSpin = async () => {
     if (!isSpinning) {
       setIsSpinning(true);
-      const result = generateSpinResult();
-      console.log('Spin result:', result);
-      console.log('Selected icons:', result.map(index => exchangeIcons[index]));
-      setFinalPositions(result);
-      animateSlots(result);
-      setTimeout(() => {
+      try {
+        const response = await fetch('/api/game/spin', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ /* 可以添加一些参数，如下注金额等 */ }),
+        });
+        const result = await response.json();
+        console.log('Spin result:', result);
+        setFinalPositions(result.positions);
+        animateSlots(result.positions);
+        setTimeout(() => {
+          setIsSpinning(false);
+          const isWin = checkWin(result.positions);
+          console.log('Win:', isWin);
+          console.log('Final positions:', result.positions.map(index => exchangeIcons[index]));
+          // 处理中奖逻辑
+          if (isWin) {
+            // 更新用户信息
+            fetchUserInfo();
+          }
+        }, 5000);
+      } catch (error) {
+        console.error('Error during spin:', error);
         setIsSpinning(false);
-        const isWin = checkWin(result);
-        console.log('Win:', isWin);
-        console.log('Final positions:', result.map(index => exchangeIcons[index]));
-        // 这里可以添加中奖逻辑
-      }, 5000);
+      }
     }
   };
 
@@ -188,7 +218,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   return (
     <div className="slot-machine flex flex-col items-center p-4 bg-gradient-to-b from-indigo-900 to-purple-900 min-h-screen">
       {!isGuestMode && <UserInfo username={username} points={points} usdt={usdt} />}
-      <SlotDisplay slotRefs={slotRefs} finalPositions={finalPositions} exchangeIcons={exchangeIcons} />
+      <SlotDisplay slotRefs={slotRefs} finalPositions={finalPositions} exchangeIcons={shuffledIcons} />
       <SpinButton isSpinning={isSpinning} onSpin={handleSpin} />
       <ActionButtons isSpinning={isSpinning} onInvite={handleInvite} onAutoSpin={() => handleAutoSpin(5)} />
     </div>
