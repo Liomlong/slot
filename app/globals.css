@@ -25,3 +25,19 @@ body {
     text-wrap: balance;
   }
 }
+
+/* 删除或注释掉以下代码 */
+/*
+@keyframes spin-slot {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+.animate-spin-slot {
+  animation: spin-slot 0.5s linear infinite;
+}
+*/
