@@ -102,7 +102,7 @@ const InviteFriends: React.FC<InviteFriendsProps> = ({ tgId }) => {
             {inviteRecords.map((record, index) => (
               <li key={index} className="py-2 flex items-center text-purple-200">
                 <FaUserPlus className="mr-2 text-green-400" />
-                <p>{t('invite.recordItem', { username: record.invitee_username, date: new Date(record.invited_at).toLocaleDateString() })}</p>
+                <p>{t('invite.recordItem').replace('{username}', record.invitee_username).replace('{date}', new Date(record.invited_at).toLocaleDateString())}</p>
               </li>
             ))}
           </ul>
