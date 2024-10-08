@@ -21,6 +21,8 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   const [gameData, setGameData] = useState<any>(null);
   const [showUserProfile, setShowUserProfile] = useState(false);
 
+  const [tgId, setTgId] = useState<number | null>(null);
+
   const baseIcons = [
     '/images/TON.png',
     '/images/BNB.png',
@@ -43,8 +45,20 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   ];
 
   useEffect(() => {
-    if (!isGuestMode) {
+    const tg = (window as any).Telegram?.WebApp;
+    if (tg && tg.initDataUnsafe?.user) {
+      setTgId(tg.initDataUnsafe.user.id);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tgId && !isGuestMode) {
       fetchUserInfo();
+    }
+  }, [tgId, isGuestMode]);
+
+  useEffect(() => {
+    if (!isGuestMode) {
       fetchGameData();
     }
     shuffleIcons();
@@ -62,14 +76,16 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   };
 
   const fetchUserInfo = async () => {
-    try {
-      const response = await fetch('/api/user/info');
-      const data = await response.json();
-      setUsername(data.username);
-      setPoints(data.points);
-      setUsdt(data.usdt);
-    } catch (error) {
-      console.error('Error fetching user info:', error);
+    if (tgId) {
+      try {
+        const response = await fetch(`/api/user?tgId=${tgId}`);
+        const data = await response.json();
+        setUsername(data.username || `User${tgId}`);
+        setPoints(data.points);
+        setUsdt(data.usdt);
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
     }
   };
 
@@ -242,7 +258,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
               </div>
               <div className="flex items-center">
                 <FaDollarSign className="text-green-400 mr-1" />
-                <span>{usdt !== null && usdt !== undefined ? usdt.toFixed(2) : 'Loading...'}</span>
+                <span>{usdt !== null ? usdt.toFixed(2) : 'Loading...'}</span>
               </div>
             </div>
           </div>
