@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useCallback } from 'react';
 import { LanguageContext } from '../contexts/LanguageContext';
 import zh from '@/translations/zh.json';
 import en from '@/translations/en.json';
@@ -55,24 +55,9 @@ const translations: Record<string, TranslationType> = { zh, en, es, fr, de, ja, 
 export const useTranslation = () => {
   const { language } = useContext(LanguageContext);
 
-  const t = (key: string, params?: Record<string, string | number>) => {
-    const keys = key.split('.');
-    let value: any = translations[language];
-    for (const k of keys) {
-      if (value && typeof value === 'object' && k in value) {
-        value = value[k];
-      } else {
-        return key; // 如果找不到翻译,返回原始键
-      }
-    }
-    if (typeof value === 'string' && params) {
-      return Object.entries(params).reduce(
-        (acc, [key, val]) => acc.replace(`{${key}}`, String(val)),
-        value
-      );
-    }
-    return value as string;
-  };
+  const t = useCallback((key: string) => {
+    return key.split('.').reduce((o, i) => o[i], translations[language] as any) || key;
+  }, [translations, language]);
 
   return { t };
 };

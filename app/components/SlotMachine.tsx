@@ -3,15 +3,17 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import UserProfile from './UserProfile';
-import { FaTicketAlt, FaDollarSign } from 'react-icons/fa'; // 导入图标
+import { FaTicketAlt, FaDollarSign } from 'react-icons/fa';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface SlotMachineProps {
   isGuestMode: boolean;
 }
 
 const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
+  const { t } = useTranslation();
   const [isSpinning, setIsSpinning] = useState(false);
-  const [finalPositions, setFinalPositions] = useState<number[]>([5, 5, 5]); // 初始化为 BTC 的索引
+  const [finalPositions, setFinalPositions] = useState<number[]>([5, 5, 5]);
   const [lastOffsets, setLastOffsets] = useState<number[]>([0, 0, 0]);
   const [username, setUsername] = useState<string | null>(null);
   const [points, setPoints] = useState<number>(0);
@@ -20,7 +22,6 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   const [shuffledIcons, setShuffledIcons] = useState<string[]>([]);
   const [gameData, setGameData] = useState<any>(null);
   const [showUserProfile, setShowUserProfile] = useState(false);
-
   const [tgId, setTgId] = useState<number | null>(null);
 
   const baseIcons = [
@@ -67,18 +68,20 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
   }, [tgId]);
 
   useEffect(() => {
-    const tg = (window as any).Telegram?.WebApp;
-    if (tg && tg.initDataUnsafe?.user) {
-      setTgId(tg.initDataUnsafe.user.id);
-      console.log("Telegram user ID:", tg.initDataUnsafe.user.id); // 添加日志
-    } else {
-      console.log("Telegram WebApp not initialized or user data not available"); // 添加日志
+    if (!isGuestMode) {
+      const tg = (window as any).Telegram?.WebApp;
+      if (tg && tg.initDataUnsafe?.user) {
+        setTgId(tg.initDataUnsafe.user.id);
+        console.log("Telegram user ID:", tg.initDataUnsafe.user.id);
+      } else {
+        console.log("Telegram WebApp not initialized or user data not available");
+      }
     }
-  }, []);
+  }, [isGuestMode]);
 
   useEffect(() => {
     if (tgId && !isGuestMode) {
-      console.log("Calling fetchUserInfo"); // 添加日志
+      console.log("Calling fetchUserInfo");
       fetchUserInfo();
     }
   }, [tgId, isGuestMode, fetchUserInfo]);
@@ -129,14 +132,23 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
     if (!isSpinning) {
       setIsSpinning(true);
       try {
-        const response = await fetch('/api/game/spin', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ /* 可以添加一些参数，如下注金额等 */ }),
-        });
-        const result = await response.json();
+        let result;
+        if (isGuestMode) {
+          // 游客模式下，直接生成随机结果
+          result = {
+            positions: generateSpinResult(),
+            isWin: false,
+          };
+        } else {
+          const response = await fetch('/api/game/spin', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ tgId }),
+          });
+          result = await response.json();
+        }
         console.log('Spin result:', result);
         setFinalPositions(result.positions);
         animateSlots(result.positions);
@@ -145,9 +157,8 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
           const isWin = checkWin(result.positions);
           console.log('Win:', isWin);
           console.log('Final positions:', result.positions.map((index: number) => exchangeIcons[index]));
-          // 处理中奖逻辑
-          if (isWin) {
-            // 更新用户信息
+          if (isWin && !isGuestMode) {
+            // 只有在非游客模式下才更新用户信息
             fetchUserInfo();
           }
         }, 5000);
@@ -252,7 +263,11 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
 
   return (
     <div className="slot-machine flex flex-col items-center p-4 bg-gradient-to-b from-indigo-900 to-purple-900 min-h-screen">
-      {!isGuestMode && (
+      {isGuestMode ? (
+        <div className="w-full max-w-md mb-4 bg-white bg-opacity-10 rounded-lg p-4 text-white">
+          <p className="text-center">{t('guestModeNotice')}</p>
+        </div>
+      ) : (
         <div className="w-full max-w-md mb-4 bg-white bg-opacity-10 rounded-lg p-4 text-white">
           {tgId ? (
             <div className="flex items-center justify-between">
@@ -282,7 +297,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
       )}
       <SlotDisplay slotRefs={slotRefs} finalPositions={finalPositions} exchangeIcons={shuffledIcons} />
       <SpinButton isSpinning={isSpinning} onSpin={handleSpin} />
-      <ActionButtons isSpinning={isSpinning} onInvite={handleInvite} onAutoSpin={() => handleAutoSpin(5)} />
+      <ActionButtons isSpinning={isSpinning} onInvite={handleInvite} onAutoSpin={() => handleAutoSpin(5)} isGuestMode={isGuestMode} />
     </div>
   );
 };
@@ -340,14 +355,16 @@ const SpinButton: React.FC<{ isSpinning: boolean; onSpin: () => void }> = ({ isS
   </button>
 );
 
-const ActionButtons: React.FC<{ isSpinning: boolean; onInvite: () => void; onAutoSpin: () => void }> = ({ isSpinning, onInvite, onAutoSpin }) => (
+const ActionButtons: React.FC<{ isSpinning: boolean; onInvite: () => void; onAutoSpin: () => void; isGuestMode: boolean }> = ({ isSpinning, onInvite, onAutoSpin, isGuestMode }) => (
   <div className="flex space-x-2 w-full mt-2">
-    <button
-      onClick={onInvite}
-      className="flex items-center justify-center px-4 py-2 text-sm bg-green-600 text-white rounded-full shadow hover:bg-green-700 flex-1"
-    >
-      Invite Friends
-    </button>
+    {!isGuestMode && (
+      <button
+        onClick={onInvite}
+        className="flex items-center justify-center px-4 py-2 text-sm bg-green-600 text-white rounded-full shadow hover:bg-green-700 flex-1"
+      >
+        Invite Friends
+      </button>
+    )}
     <button
       onClick={onAutoSpin}
       disabled={isSpinning}
