@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import InviteFriends from '../components/InviteFriends';
@@ -8,6 +8,14 @@ import { useTranslation } from '../hooks/useTranslation';
 
 const FriendPage: React.FC = () => {
   const { t } = useTranslation();
+  const [tgId, setTgId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const tg = (window as any).Telegram?.WebApp;
+    if (tg && tg.initDataUnsafe?.user) {
+      setTgId(tg.initDataUnsafe.user.id);
+    }
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-purple-900 to-indigo-900">
@@ -17,7 +25,7 @@ const FriendPage: React.FC = () => {
           <h1 className="text-2xl font-bold mb-4 text-white text-center">
             {t('friend.title') || 'Invite Friends'}
           </h1>
-          <InviteFriends tgId={null} />
+          <InviteFriends tgId={tgId} />
         </div>
       </main>
       <Footer />

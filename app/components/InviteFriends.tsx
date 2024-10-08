@@ -22,7 +22,6 @@ const InviteFriends: React.FC<InviteFriendsProps> = ({ tgId }) => {
 
   useEffect(() => {
     if (tgId) {
-      // 更新这里的邀请链接格式
       setInviteLink(`https://t.me/web3luckybot/app?startapp=${tgId}`);
       fetchInviteRecords();
     }
@@ -50,20 +49,23 @@ const InviteFriends: React.FC<InviteFriendsProps> = ({ tgId }) => {
   };
 
   const shareLink = () => {
-    const tg = (window as any).Telegram?.WebApp;
-    if (tg && tg.shareUrl) {
-      tg.shareUrl(inviteLink);
+    if (navigator.share) {
+      navigator.share({
+        title: t('invite.shareTitle'),
+        text: t('invite.shareText'),
+        url: inviteLink,
+      }).catch((error) => console.log('Error sharing', error));
     } else {
-      console.error('Telegram WebApp is not available');
+      copyToClipboard();
     }
   };
 
   return (
     <motion.div 
+      className="bg-purple-800 bg-opacity-50 p-6 rounded-lg shadow-lg"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
-      className="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-lg shadow-xl p-6"
+      transition={{ duration: 0.5 }}
     >
       <h2 className="text-2xl font-bold mb-4 text-white">{t('invite.title')}</h2>
       <p className="mb-4 text-purple-200">{t('invite.description')}</p>
@@ -96,7 +98,7 @@ const InviteFriends: React.FC<InviteFriendsProps> = ({ tgId }) => {
       </div>
 
       <h3 className="text-xl font-semibold mb-2 text-white">{t('invite.records')}</h3>
-      <div className="max-h-60 overflow-y-auto"> {/* 限制最大高度并添加垂直滚动 */}
+      <div className="max-h-60 overflow-y-auto">
         {inviteRecords.length > 0 ? (
           <ul className="divide-y divide-purple-400">
             {inviteRecords.map((record, index) => (

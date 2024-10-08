@@ -9,55 +9,23 @@ import ja from '@/translations/ja.json';
 import ko from '@/translations/ko.json';
 import ru from '@/translations/ru.json';
 
-// 定义翻译文件的结构
-type TranslationType = {
-  slotMachine: {
-    title: string;
-    points?: string;
-    usdt?: string;
-    pointsAndUsdt?: string;
-    spin: string;
-    autoSpin: string;
-    invite: string;
-    freeSpinAvailable: string;
-    spinsLeft: string;
-    bigWin: string;
-    smallWin: string;
-    congratulations: string;
-    continueGame: string;
-  };
-  navbar: {
-    title: string;
-  };
-  footer: {
-    slot: string;
-    rank: string;
-    friend: string;
-    wallet: string;
-  };
-  welcomeModal: {
-    title: string;
-    subtitle: string;
-    reward1: string;
-    reward2: string;
-    enjoy: string;
-    startGame: string;
-  };
-  invite: {
-    title: string;
-    description: string;
-    reward: string;
-  };
-};
-
-const translations: Record<string, TranslationType> = { zh, en, es, fr, de, ja, ko, ru };
+const translations: Record<string, any> = { zh, en, es, fr, de, ja, ko, ru };
 
 export const useTranslation = () => {
   const { language } = useContext(LanguageContext);
 
-  const t = useCallback((key: string) => {
-    return key.split('.').reduce((o, i) => o[i], translations[language] as any) || key;
-  }, [translations, language]);
+  const t = useCallback((key: string, params?: Record<string, string | number>) => {
+    const keys = key.split('.');
+    let value = keys.reduce((o, i) => o?.[i], translations[language]);
+    
+    if (typeof value === 'string' && params) {
+      Object.entries(params).forEach(([k, v]) => {
+        value = (value as string).replace(`{${k}}`, String(v));
+      });
+    }
+    
+    return value || key;
+  }, [language]);
 
   return { t };
 };
