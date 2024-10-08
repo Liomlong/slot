@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import UserProfile from './UserProfile';
 import { FaTicketAlt, FaDollarSign } from 'react-icons/fa'; // 导入图标
@@ -55,7 +55,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
     if (tgId && !isGuestMode) {
       fetchUserInfo();
     }
-  }, [tgId, isGuestMode]);
+  }, [tgId, isGuestMode, fetchUserInfo]);
 
   useEffect(() => {
     if (!isGuestMode) {
@@ -75,19 +75,22 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
     setShuffledIcons(shuffled);
   };
 
-  const fetchUserInfo = async () => {
+  const fetchUserInfo = useCallback(async () => {
     if (tgId) {
       try {
-        const response = await fetch(`/api/user?tgId=${tgId}`);
+        const response = await fetch(`/api/user/info?tgId=${tgId}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
         setUsername(data.username || `User${tgId}`);
-        setPoints(data.points);
-        setUsdt(data.usdt);
+        setPoints(data.points || 0);
+        setUsdt(data.usdt || 0);
       } catch (error) {
         console.error('Error fetching user info:', error);
       }
     }
-  };
+  }, [tgId]);
 
   const fetchGameData = async () => {
     try {
@@ -254,11 +257,11 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ isGuestMode }) => {
             <div className="flex items-center space-x-4">
               <div className="flex items-center">
                 <FaTicketAlt className="text-yellow-400 mr-1" />
-                <span>{points}</span>
+                <span>{points !== undefined ? points : 'Loading...'}</span>
               </div>
               <div className="flex items-center">
                 <FaDollarSign className="text-green-400 mr-1" />
-                <span>{usdt !== null ? usdt.toFixed(2) : 'Loading...'}</span>
+                <span>{usdt !== undefined ? usdt.toFixed(2) : 'Loading...'}</span>
               </div>
             </div>
           </div>
